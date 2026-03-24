@@ -1,6 +1,6 @@
-# 🚀 MT5 Trading Bot - Deployment Guide
+# ð MT5 Trading Bot - Deployment Guide
 
-## 📋 **Table of Contents**
+## ð **Table of Contents**
 - [Prerequisites](#prerequisites)
 - [Building the Executable](#building-the-executable)
 - [Running the Bot](#running-the-bot)
@@ -11,7 +11,7 @@
 
 ---
 
-## ✅ **Prerequisites**
+## [ok] **Prerequisites**
 
 ### **Required Software:**
 1. **Python 3.8+** installed
@@ -23,14 +23,14 @@ All dependencies are listed in `requirements.txt`
 
 ---
 
-## 🔨 **Building the Executable**
+## ð¨ **Building the Executable**
 
 ### **Option 1: Automatic Build (Recommended)**
 
 1. **Open Command Prompt or PowerShell**
 2. **Navigate to project directory:**
    ```bash
-   cd "C:\Iván\Yosoybuendesarrollador\Python\Portafolio\mt5_live_trading_bot"
+   cd "C:\IvÃ¡n\Yosoybuendesarrollador\Python\Portafolio\mt5_live_trading_bot"
    ```
 
 3. **Run the build script:**
@@ -61,7 +61,7 @@ pyinstaller --onefile --name "MT5_Trading_Bot" --noconsole advanced_mt5_monitor_
 
 ---
 
-## ▶️ **Running the Bot**
+## â¶ï¸ **Running the Bot**
 
 ### **Method 1: Direct Execution**
 
@@ -84,10 +84,10 @@ run_bot.bat
 ```
 
 **Features:**
-- ✅ Automatic error detection
-- ✅ Option to restart on failure
-- ✅ Separate launcher logs
-- ✅ Timestamped log files
+- [ok] Automatic error detection
+- [ok] Option to restart on failure
+- [ok] Separate launcher logs
+- [ok] Timestamped log files
 
 ### **Method 3: Background Process**
 
@@ -99,7 +99,7 @@ start /B dist\MT5_Trading_Bot.exe
 
 ---
 
-## 🎯 **Deployment Options**
+## ð¯ **Deployment Options**
 
 ### **Option A: Local Development/Testing**
 
@@ -111,12 +111,12 @@ start /B dist\MT5_Trading_Bot.exe
 - Monitor via `mt5_advanced_monitor.log`
 
 **Pros:**
-- ✅ Easy access to source code
-- ✅ Quick rebuilds after changes
-- ✅ Familiar environment
+- [ok] Easy access to source code
+- [ok] Quick rebuilds after changes
+- [ok] Familiar environment
 
 **Cons:**
-- ⚠️ Mixed with source files
+- [warn]ï¸ Mixed with source files
 
 ---
 
@@ -138,18 +138,18 @@ start /B dist\MT5_Trading_Bot.exe
 
 3. **Create shortcut on Desktop** (optional):
    - Right-click `MT5_Trading_Bot.exe`
-   - Send to → Desktop (create shortcut)
+   - Send to -> Desktop (create shortcut)
 
 4. **Run from production folder**
 
 **Pros:**
-- ✅ Clean separation from source code
-- ✅ Professional organization
-- ✅ Easy to find and launch
-- ✅ Centralized logs
+- [ok] Clean separation from source code
+- [ok] Professional organization
+- [ok] Easy to find and launch
+- [ok] Centralized logs
 
 **Cons:**
-- ⚠️ Must copy new .exe after rebuilds
+- [warn]ï¸ Must copy new .exe after rebuilds
 
 ---
 
@@ -159,7 +159,7 @@ start /B dist\MT5_Trading_Bot.exe
 
 **Setup via Task Scheduler:**
 
-1. **Open Task Scheduler** (Win + R → `taskschd.msc`)
+1. **Open Task Scheduler** (Win + R -> `taskschd.msc`)
 
 2. **Create Basic Task:**
    - Name: `MT5 Trading Bot`
@@ -172,18 +172,18 @@ start /B dist\MT5_Trading_Bot.exe
    - Start in: `C:\Trading\MT5_Bot`
 
 5. **Settings:**
-   - ✅ Allow task to be run on demand
-   - ✅ Run task as soon as possible after a scheduled start is missed
-   - ✅ If the task fails, restart every: 1 minute
-   - ✅ Attempt to restart up to: 3 times
+   - [ok] Allow task to be run on demand
+   - [ok] Run task as soon as possible after a scheduled start is missed
+   - [ok] If the task fails, restart every: 1 minute
+   - [ok] Attempt to restart up to: 3 times
 
 **Pros:**
-- ✅ Fully automated
-- ✅ Survives reboots
-- ✅ Auto-recovery on crashes
+- [ok] Fully automated
+- [ok] Survives reboots
+- [ok] Auto-recovery on crashes
 
 **Cons:**
-- ⚠️ Runs on every login (may need credentials automation)
+- [warn]ï¸ Runs on every login (may need credentials automation)
 
 ---
 
@@ -206,17 +206,17 @@ start /B dist\MT5_Trading_Bot.exe
 4. **Run each instance separately**
 
 **Pros:**
-- ✅ Test different strategies
-- ✅ Different asset allocations
-- ✅ Independent logging
+- [ok] Test different strategies
+- [ok] Different asset allocations
+- [ok] Independent logging
 
 **Cons:**
-- ⚠️ Higher resource usage
-- ⚠️ Must manage multiple logs
+- [warn]ï¸ Higher resource usage
+- [warn]ï¸ Must manage multiple logs
 
 ---
 
-## 📊 **Monitoring & Logs**
+## ð **Monitoring & Logs**
 
 ### **Primary Log File:**
 - **File:** `mt5_advanced_monitor.log`
@@ -258,7 +258,7 @@ echo Old logs deleted. Keeping last 7 days only.
 
 ---
 
-## 🔧 **Troubleshooting**
+## ð§ **Troubleshooting**
 
 ### **Issue: Executable doesn't start**
 
@@ -286,8 +286,8 @@ echo Old logs deleted. Keeping last 7 days only.
 
 **Solution:**
 1. Add exclusion in Windows Defender:
-   - Settings → Update & Security → Windows Security → Virus & threat protection
-   - Manage settings → Add exclusion → File
+   - Settings -> Update & Security -> Windows Security -> Virus & threat protection
+   - Manage settings -> Add exclusion -> File
    - Select `MT5_Trading_Bot.exe`
 
 2. Whitelist in third-party antivirus (similar process)
@@ -320,28 +320,28 @@ echo Old logs deleted. Keeping last 7 days only.
 
 **Solution:**
 1. Check file permissions in directory
-2. Run .exe as administrator (right-click → Run as administrator)
+2. Run .exe as administrator (right-click -> Run as administrator)
 3. Check if log path is hardcoded to different location
 
 ---
 
-## 🔒 **Security Best Practices**
+## ð **Security Best Practices**
 
-### **✅ DO:**
-- ✅ Keep the .exe in a secure location
-- ✅ Use strong MT5 account passwords
-- ✅ Regular backups of logs and configurations
-- ✅ Monitor account activity regularly
-- ✅ Run on trusted networks only
-- ✅ Keep Windows updated
+### **[ok] DO:**
+- [ok] Keep the .exe in a secure location
+- [ok] Use strong MT5 account passwords
+- [ok] Regular backups of logs and configurations
+- [ok] Monitor account activity regularly
+- [ok] Run on trusted networks only
+- [ok] Keep Windows updated
 
-### **❌ DON'T:**
-- ❌ Share your .exe publicly (may contain your paths)
-- ❌ Commit .exe to public GitHub repositories
-- ❌ Store credentials in plain text files
-- ❌ Run on public/untrusted computers
-- ❌ Disable antivirus completely (whitelist only)
-- ❌ Share your MT5 credentials
+### **â DON'T:**
+- â Share your .exe publicly (may contain your paths)
+- â Commit .exe to public GitHub repositories
+- â Store credentials in plain text files
+- â Run on public/untrusted computers
+- â Disable antivirus completely (whitelist only)
+- â Share your MT5 credentials
 
 ### **Credential Management:**
 
@@ -363,26 +363,26 @@ password = os.getenv('MT5_PASSWORD')
 
 ---
 
-## 📝 **Version Control**
+## ð **Version Control**
 
 ### **Files in Git Repository:**
-✅ Source code (`.py` files)
-✅ Build scripts (`.bat` files)
-✅ Documentation (`.md` files)
-✅ Dependencies (`requirements.txt`)
-✅ `.gitignore` file
+[ok] Source code (`.py` files)
+[ok] Build scripts (`.bat` files)
+[ok] Documentation (`.md` files)
+[ok] Dependencies (`requirements.txt`)
+[ok] `.gitignore` file
 
 ### **Files NOT in Git (Local Only):**
-❌ `.exe` files
-❌ `.log` files
-❌ `dist/` folder
-❌ `build/` folder
-❌ Credential files
-❌ Personal configurations
+â `.exe` files
+â `.log` files
+â `dist/` folder
+â `build/` folder
+â Credential files
+â Personal configurations
 
 ---
 
-## 🎯 **Recommended Deployment Workflow**
+## ð¯ **Recommended Deployment Workflow**
 
 ### **Development Phase:**
 1. Edit code in VS Code
@@ -409,7 +409,7 @@ password = os.getenv('MT5_PASSWORD')
 
 ---
 
-## 📞 **Support & Updates**
+## ð **Support & Updates**
 
 - **GitHub Repository:** Check for updates regularly
 - **Logs:** Always check `mt5_advanced_monitor.log` first
@@ -417,7 +417,7 @@ password = os.getenv('MT5_PASSWORD')
 
 ---
 
-## ✅ **Quick Start Checklist**
+## [ok] **Quick Start Checklist**
 
 - [ ] Python 3.8+ installed
 - [ ] MetaTrader 5 installed
@@ -433,4 +433,4 @@ password = os.getenv('MT5_PASSWORD')
 
 ---
 
-**🎉 You're ready to deploy! Good luck with your automated trading!**
+**ð You're ready to deploy! Good luck with your automated trading!**

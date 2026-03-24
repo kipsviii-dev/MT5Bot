@@ -1,51 +1,51 @@
-# 🎯 READY TO TEST - Final Summary
+# ð¯ READY TO TEST - Final Summary
 
 **Date:** 2025-10-08  
-**Status:** ✅ ALL FIXES COMPLETE - READY FOR TESTING
+**Status:** [ok] ALL FIXES COMPLETE - READY FOR TESTING
 
 ---
 
-## ✅ What Was Fixed
+## [ok] What Was Fixed
 
-### 1. XAUUSD Filter EMA (40 → 100) ✅
+### 1. XAUUSD Filter EMA (40 -> 100) [ok]
 **Problem:** Chart showed `EMA Filter (40)` instead of correct `100`  
 **Cause:** Wrong fallback values in GUI code  
 **Fix:** Changed fallbacks from `'40'/'70'` to `'100'` in 2 locations  
 **Result:** XAUUSD will now display correct `EMA Filter (100)`
 
-### 2. Phase Logic (Random → Real Crossovers) ✅
+### 2. Phase Logic (Random -> Real Crossovers) [ok]
 **Problem:** EMA crossovers detected but phase stayed NORMAL  
 **Cause:** Phase determination used random simulation `np.random.random() < 0.05`  
 **Fix:** Complete rewrite to use actual crossover data from `detect_ema_crossovers()`  
-**Result:** Phase now changes NORMAL → WAITING_PULLBACK when crossovers occur
+**Result:** Phase now changes NORMAL -> WAITING_PULLBACK when crossovers occur
 
-### 3. Project Cleanup (25 → 12 files) ✅
+### 3. Project Cleanup (25 -> 12 files) [ok]
 **Problem:** 13 duplicate/unnecessary files cluttering project  
 **Fix:** Removed all duplicates, kept only essential files  
 **Result:** Clean, organized project structure
 
 ---
 
-## 📊 Asset Configurations Verified
+## ð Asset Configurations Verified
 
 | Asset   | Filter EMA | Status      |
 |---------|-----------|-------------|
-| AUDUSD  | 40        | ✅ Verified  |
-| EURUSD  | 70        | ✅ Verified  |
-| GBPUSD  | 70        | ✅ Verified  |
-| USDCHF  | 50        | ✅ Verified  |
-| XAUUSD  | **100**   | ✅ **Fixed** |
-| XAGUSD  | 50        | ✅ Verified  |
+| AUDUSD  | 40        | [ok] Verified  |
+| EURUSD  | 70        | [ok] Verified  |
+| GBPUSD  | 70        | [ok] Verified  |
+| USDCHF  | 50        | [ok] Verified  |
+| XAUUSD  | **100**   | [ok] **Fixed** |
+| XAGUSD  | 50        | [ok] Verified  |
 
 **All strategy files correct - no changes needed!**
 
 ---
 
-## 🚀 HOW TO TEST
+## ð HOW TO TEST
 
 ### Step 1: Start the Monitor
 ```powershell
-cd "c:\Iván\Yosoybuendesarrollador\Python\Portafolio\mt5_live_trading_bot"
+cd "c:\IvÃ¡n\Yosoybuendesarrollador\Python\Portafolio\mt5_live_trading_bot"
 python launch_advanced_monitor_v2.py
 ```
 
@@ -54,25 +54,25 @@ python launch_advanced_monitor_v2.py
 2. Go to **"Charts"** tab
 3. Select **"XAUUSD"** from dropdown
 4. Click **"Refresh Chart"**
-5. **CHECK LEGEND:** Should show `EMA Filter (100)` ✅ NOT (40) ❌
+5. **CHECK LEGEND:** Should show `EMA Filter (100)` [ok] NOT (40) â
 
 ### Step 3: Test Phase Transitions
 1. Keep monitor running with live data
 2. Watch **"Terminal Output"** tab
-3. When you see: `🟢 XAUUSD: Confirm EMA CROSSED ABOVE Slow EMA - BULLISH SIGNAL!`
+3. When you see: `ð¢ XAUUSD: Confirm EMA CROSSED ABOVE Slow EMA - BULLISH SIGNAL!`
 4. **IMMEDIATELY CHECK "Strategy Phases" table:**
-   - Phase should change to: `🟡 WAITING_PULLBACK`
+   - Phase should change to: `ð¡ WAITING_PULLBACK`
    - Direction should show: `LONG` or `SHORT`
    - Pullback Count should start incrementing
-5. Terminal should show: `🔄 XAUUSD: PHASE CHANGE - NORMAL → WAITING_PULLBACK`
+5. Terminal should show: `ð XAUUSD: PHASE CHANGE - NORMAL -> WAITING_PULLBACK`
 
 ### Step 4: Test Pullback Counting
 1. After Phase = WAITING_PULLBACK
 2. Watch **Pullback Count** column increment with each pullback candle
 3. When count reaches max (e.g., 2 for XAUUSD):
-   - Phase should change to: `🟠 WAITING_BREAKOUT`
+   - Phase should change to: `ð  WAITING_BREAKOUT`
    - Window Active should show: `Yes`
-4. Terminal should show: `🟢 XAUUSD: Pullback confirmed (2 candles) - Window OPEN`
+4. Terminal should show: `ð¢ XAUUSD: Pullback confirmed (2 candles) - Window OPEN`
 
 ### Step 5: Test All Assets
 Test each asset to verify correct Filter EMA:
@@ -80,53 +80,53 @@ Test each asset to verify correct Filter EMA:
 - **EURUSD:** Filter should be **(70)**
 - **GBPUSD:** Filter should be **(70)**
 - **USDCHF:** Filter should be **(50)**
-- **XAUUSD:** Filter should be **(100)** ← Most important!
+- **XAUUSD:** Filter should be **(100)** <- Most important!
 - **XAGUSD:** Filter should be **(50)**
 
 ---
 
-## 📋 Expected Behavior
+## ð Expected Behavior
 
 ### XAUUSD Complete Cycle Example:
 
 ```
-1️⃣ NORMAL Phase
-   ↓
+1ï¸â£ NORMAL Phase
+   â
    [EMA Crossover Detected]
-   Terminal: "🟢 XAUUSD: Confirm EMA CROSSED ABOVE Slow EMA - BULLISH SIGNAL!"
-   Terminal: "🔄 XAUUSD: PHASE CHANGE - NORMAL → WAITING_PULLBACK"
+   Terminal: "ð¢ XAUUSD: Confirm EMA CROSSED ABOVE Slow EMA - BULLISH SIGNAL!"
+   Terminal: "ð XAUUSD: PHASE CHANGE - NORMAL -> WAITING_PULLBACK"
    
-2️⃣ WAITING_PULLBACK Phase (Armed: LONG)
-   Pullback Count: 0 → 1 → 2
-   ↓
+2ï¸â£ WAITING_PULLBACK Phase (Armed: LONG)
+   Pullback Count: 0 -> 1 -> 2
+   â
    [2 bearish candles completed]
-   Terminal: "🟢 XAUUSD: Pullback confirmed (2 candles) - Window OPEN"
-   Terminal: "🔄 XAUUSD: PHASE CHANGE - WAITING_PULLBACK → WAITING_BREAKOUT"
+   Terminal: "ð¢ XAUUSD: Pullback confirmed (2 candles) - Window OPEN"
+   Terminal: "ð XAUUSD: PHASE CHANGE - WAITING_PULLBACK -> WAITING_BREAKOUT"
    
-3️⃣ WAITING_BREAKOUT Phase (Window Active: Yes)
-   ↓
+3ï¸â£ WAITING_BREAKOUT Phase (Window Active: Yes)
+   â
    [Price breaks above window level OR timeout]
-   Terminal: "🎯 XAUUSD: BREAKOUT DETECTED!" or "⏰ XAUUSD: Window expired"
-   Terminal: "🔄 XAUUSD: PHASE CHANGE - WAITING_BREAKOUT → NORMAL"
+   Terminal: "ð¯ XAUUSD: BREAKOUT DETECTED!" or "â° XAUUSD: Window expired"
+   Terminal: "ð XAUUSD: PHASE CHANGE - WAITING_BREAKOUT -> NORMAL"
    
-4️⃣ Back to NORMAL Phase
+4ï¸â£ Back to NORMAL Phase
    Cycle repeats...
 ```
 
 ---
 
-## 🎨 What You'll See
+## ð¨ What You'll See
 
 ### Charts Tab (XAUUSD):
 ```
 Legend:
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ââââââââââââââââââââââââââââââââ
 EMA Confirm (1)    [Cyan thick line]
 EMA Fast (14)      [Red line]
 EMA Medium (14)    [Orange line]
 EMA Slow (24)      [Green line]
-EMA Filter (100)   [Purple line] ← CORRECT!
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+EMA Filter (100)   [Purple line] <- CORRECT!
+ââââââââââââââââââââââââââââââââ
 LONG SL: 4023.01400  [Green dotted]
 LONG TP: 4095.85000  [Lime dotted]
 SHORT SL: 4059.29600 [Red dotted]
@@ -136,53 +136,53 @@ SHORT TP: 3996.90400 [Dark red dotted]
 ### Strategy Phases Tab:
 ```
 Symbol  | Phase              | Direction | Pullback | Window  | Last Update
-━━━━━━━━|━━━━━━━━━━━━━━━━━━━━|━━━━━━━━━━━|━━━━━━━━━━|━━━━━━━━━|━━━━━━━━━━━
-XAUUSD  | 🟡 WAITING_PULLBACK| LONG      | 1        | No      | 17:25:58
+ââââââââ|ââââââââââââââââââââ|âââââââââââ|ââââââââââ|âââââââââ|âââââââââââ
+XAUUSD  | ð¡ WAITING_PULLBACK| LONG      | 1        | No      | 17:25:58
 ```
 
 ### Terminal Output Tab:
 ```
-[17:20:17.789] 🔥 BOT IS LIVE - Advanced Monitoring Active
-[17:20:17.811] ✅ Tracking: EMA crossovers, Phase changes, Entry signals
-[17:20:40.413] 🟢 XAUUSD: Confirm EMA CROSSED ABOVE Slow EMA - BULLISH SIGNAL!
-[17:20:40.477] 🔄 XAUUSD: PHASE CHANGE - NORMAL → WAITING_PULLBACK
-[17:20:48.674] 🟢 XAUUSD: Confirm EMA CROSSED ABOVE Fast EMA - BULLISH SIGNAL!
-[17:20:54.817] 🟢 XAUUSD: Confirm EMA CROSSED ABOVE Medium EMA - BULLISH SIGNAL!
+[17:20:17.789] ð¥ BOT IS LIVE - Advanced Monitoring Active
+[17:20:17.811] [ok] Tracking: EMA crossovers, Phase changes, Entry signals
+[17:20:40.413] ð¢ XAUUSD: Confirm EMA CROSSED ABOVE Slow EMA - BULLISH SIGNAL!
+[17:20:40.477] ð XAUUSD: PHASE CHANGE - NORMAL -> WAITING_PULLBACK
+[17:20:48.674] ð¢ XAUUSD: Confirm EMA CROSSED ABOVE Fast EMA - BULLISH SIGNAL!
+[17:20:54.817] ð¢ XAUUSD: Confirm EMA CROSSED ABOVE Medium EMA - BULLISH SIGNAL!
 ```
 
 ---
 
-## 📁 Clean Project Files
+## ð Clean Project Files
 
 **Essential Files (12):**
 ```
-✅ advanced_mt5_monitor_gui.py      (Main app)
-✅ launch_advanced_monitor_v2.py    (Launcher)
-✅ requirements.txt                 (Dependencies)
-✅ pyproject.toml                   (Config)
-✅ setup.ps1                        (Setup)
-✅ README_V2.md                     (Main docs)
-✅ FINAL_ALL_EMAS_COMPLETE.md       (EMA reference)
-✅ PHASE_FILTER_FIXES.md            (Phase fixes)
-✅ ASSET_CONFIGS_VERIFIED.md        (Config table)
-✅ CLEANUP_COMPLETE.md              (Cleanup record)
-✅ CLEANUP_PLAN.md                  (Cleanup details)
-✅ THIS_FILE.md                     (Testing guide)
+[ok] advanced_mt5_monitor_gui.py      (Main app)
+[ok] launch_advanced_monitor_v2.py    (Launcher)
+[ok] requirements.txt                 (Dependencies)
+[ok] pyproject.toml                   (Config)
+[ok] setup.ps1                        (Setup)
+[ok] README_V2.md                     (Main docs)
+[ok] FINAL_ALL_EMAS_COMPLETE.md       (EMA reference)
+[ok] PHASE_FILTER_FIXES.md            (Phase fixes)
+[ok] ASSET_CONFIGS_VERIFIED.md        (Config table)
+[ok] CLEANUP_COMPLETE.md              (Cleanup record)
+[ok] CLEANUP_PLAN.md                  (Cleanup details)
+[ok] THIS_FILE.md                     (Testing guide)
 ```
 
 **Strategy Files (6):**
 ```
-✅ strategies/kips_strategy_audusd.py
-✅ strategies/kips_strategy_eurusd.py
-✅ strategies/kips_strategy_gbpusd.py
-✅ strategies/kips_strategy_usdchf.py
-✅ strategies/kips_strategy_xauusd.py
-✅ strategies/kips_strategy_xagusd.py
+[ok] strategies/kips_strategy_audusd.py
+[ok] strategies/kips_strategy_eurusd.py
+[ok] strategies/kips_strategy_gbpusd.py
+[ok] strategies/kips_strategy_usdchf.py
+[ok] strategies/kips_strategy_xauusd.py
+[ok] strategies/kips_strategy_xagusd.py
 ```
 
 ---
 
-## 🔍 Troubleshooting
+## ð Troubleshooting
 
 ### If XAUUSD still shows Filter (40):
 1. Stop monitoring
@@ -193,9 +193,9 @@ XAUUSD  | 🟡 WAITING_PULLBACK| LONG      | 1        | No      | 17:25:58
 
 ### If Phase doesn't change on crossovers:
 1. Check Terminal Output for crossover messages
-2. Verify message shows: `🟢 XAUUSD: Confirm EMA CROSSED...`
+2. Verify message shows: `ð¢ XAUUSD: Confirm EMA CROSSED...`
 3. Check if previous candle was bearish (LONG) or bullish (SHORT)
-4. Look for: `🔄 XAUUSD: PHASE CHANGE...` message
+4. Look for: `ð XAUUSD: PHASE CHANGE...` message
 
 ### If no crossovers detected:
 1. Ensure monitoring is running
@@ -205,7 +205,7 @@ XAUUSD  | 🟡 WAITING_PULLBACK| LONG      | 1        | No      | 17:25:58
 
 ---
 
-## 📚 Documentation Reference
+## ð Documentation Reference
 
 **Quick Reference:** `ASSET_CONFIGS_VERIFIED.md` - All asset configurations  
 **Phase Logic:** `PHASE_FILTER_FIXES.md` - How phase transitions work  
@@ -214,7 +214,7 @@ XAUUSD  | 🟡 WAITING_PULLBACK| LONG      | 1        | No      | 17:25:58
 
 ---
 
-## ✅ Verification Checklist
+## [ok] Verification Checklist
 
 Before considering testing complete:
 
@@ -231,20 +231,20 @@ Before considering testing complete:
 
 ---
 
-## 🎉 YOU'RE READY!
+## ð YOU'RE READY!
 
 **Everything is fixed and verified:**
-- ✅ Filter EMA periods correct for all assets
-- ✅ XAUUSD Filter EMA will show 100 (not 40)
-- ✅ Phase logic uses real crossover detection
-- ✅ Phase transitions work correctly
-- ✅ Project cleaned up and organized
-- ✅ All documentation updated
+- [ok] Filter EMA periods correct for all assets
+- [ok] XAUUSD Filter EMA will show 100 (not 40)
+- [ok] Phase logic uses real crossover detection
+- [ok] Phase transitions work correctly
+- [ok] Project cleaned up and organized
+- [ok] All documentation updated
 
-**START THE MONITOR AND TEST IT!** 🚀
+**START THE MONITOR AND TEST IT!** ð
 
 ```powershell
-cd "c:\Iván\Yosoybuendesarrollador\Python\Portafolio\mt5_live_trading_bot"
+cd "c:\IvÃ¡n\Yosoybuendesarrollador\Python\Portafolio\mt5_live_trading_bot"
 python launch_advanced_monitor_v2.py
 ```
 

@@ -2,7 +2,7 @@
 
 This document serves as the "Source of Truth" for the configuration parameters of the KIPS STRATEGY strategy across all traded assets.
 
-## 📊 Core Asset Parameter Comparison
+## ð Core Asset Parameter Comparison
 
 | Parameter | AUDUSD | EURUSD | GBPUSD | USDCHF | XAGUSD | XAUUSD | EURJPY | USDJPY |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
@@ -18,7 +18,7 @@ This document serves as the "Source of Truth" for the configuration parameters o
 | **Short ATR SL Mult** | 2.5 | N/A | N/A | 2.5 | 2.5 | 2.5 | N/A | 2.5 |
 | **Short ATR TP Mult** | 6.5 | N/A | N/A | 6.5 | 6.5 | 6.5 | N/A | 6.5 |
 
-## 📈 EMA Configuration
+## ð EMA Configuration
 
 | Parameter | AUDUSD | EURUSD | GBPUSD | USDCHF | XAGUSD | XAUUSD | EURJPY | USDJPY |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
@@ -28,15 +28,15 @@ This document serves as the "Source of Truth" for the configuration parameters o
 | **EMA Confirm Length** | 1 | 1 | 1 | 1 | 1 | 1 | 1 | 1 |
 | **EMA Filter Price Length** | 40 | 70 | 70 | 50 | 50 | 100 | 70 | 70 |
 
-## 📐 Angle Filter Configuration
+## ð Angle Filter Configuration
 
 | Parameter | AUDUSD | EURUSD | GBPUSD | USDCHF | XAGUSD | XAUUSD | EURJPY | USDJPY |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Long Angle Filter** | ✅ On | ❌ Off | ✅ On | ❌ Off | ✅ On | ❌ Off | ✅ On | ✅ On |
+| **Long Angle Filter** | [ok] On | â Off | [ok] On | â Off | [ok] On | â Off | [ok] On | [ok] On |
 | **Long Min Angle** | 0° | 35° | 45° | 40° | 0° | 35° | 60° | 30° |
 | **Long Max Angle** | 30° | 85° | 95° | 80° | 50° | 95° | 88° | 95° |
 | **Long Scale Factor** | 10 | 10000 | 10000 | 10000 | 10 | 10 | 100 | 100 |
-| **Short Angle Filter** | ✅ On | N/A | N/A | ✅ On | ✅ On | ✅ On | N/A | ✅ On |
+| **Short Angle Filter** | [ok] On | N/A | N/A | [ok] On | [ok] On | [ok] On | N/A | [ok] On |
 | **Short Min Angle** | -90° | N/A | N/A | -90° | -90° | -80° | N/A | -90° |
 | **Short Max Angle** | -20° | N/A | N/A | -20° | -50° | -30° | N/A | -20° |
 | **Short Scale Factor** | 10 | N/A | N/A | 10000 | 10 | 10 | N/A | 100 |
@@ -46,33 +46,33 @@ This document serves as the "Source of Truth" for the configuration parameters o
 > - **100** = JPY pairs (EURJPY, USDJPY)
 > - **10000** = Standard forex (EURUSD, GBPUSD, USDCHF)
 
-## 📊 ATR Volatility Filter Configuration
+## ð ATR Volatility Filter Configuration
 
 | Parameter | AUDUSD | EURUSD | GBPUSD | USDCHF | XAGUSD | XAUUSD | EURJPY | USDJPY |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 | **ATR Length** | 10 | 10 | 10 | 10 | 10 | 10 | 10 | 10 |
-| **Long ATR Filter** | ❌ Off | ❌ Off | ❌ Off | ❌ Off | ✅ On | ✅ On | ❌ Off | ❌ Off |
-| **Long ATR Increment Filter** | ❌ Off | ❌ Off | ❌ Off | ❌ Off | ✅ On | ✅ On | ✅ On | ❌ Off |
-| **Long ATR Decrement Filter** | ❌ Off | ❌ Off | ❌ Off | ❌ Off | ✅ On | ❌ Off | ✅ On | ❌ Off |
+| **Long ATR Filter** | â Off | â Off | â Off | â Off | [ok] On | [ok] On | â Off | â Off |
+| **Long ATR Increment Filter** | â Off | â Off | â Off | â Off | [ok] On | [ok] On | [ok] On | â Off |
+| **Long ATR Decrement Filter** | â Off | â Off | â Off | â Off | [ok] On | â Off | [ok] On | â Off |
 
-## 🔧 Entry Filter Configuration
-
-| Parameter | AUDUSD | EURUSD | GBPUSD | USDCHF | XAGUSD | XAUUSD | EURJPY | USDJPY |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Price Filter EMA** | ✅ On | ✅ On | ✅ On | ✅ On | ✅ On | ✅ On | ✅ On | ✅ On |
-| **Candle Direction Filter** | ❌ Off | ❌ Off | ❌ Off | ❌ Off | ❌ Off | ❌ Off | ❌ Off | ❌ Off |
-| **EMA Order Condition** | ❌ Off | ❌ Off | ❌ Off | ❌ Off | ❌ Off | ❌ Off | ❌ Off | ❌ Off |
-| **EMA Below Price Filter** | ❌ Off | ❌ Off | ❌ Off | ❌ Off | ❌ Off | ❌ Off | ❌ Off | ❌ Off |
-
-## ⏰ Time Range Filter Configuration
+## ð§ Entry Filter Configuration
 
 | Parameter | AUDUSD | EURUSD | GBPUSD | USDCHF | XAGUSD | XAUUSD | EURJPY | USDJPY |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Time Filter Enabled** | ✅ Yes | ✅ Yes | ❌ No | ✅ Yes | ✅ Yes | ❌ No | ❌ No | ❌ No |
+| **Price Filter EMA** | [ok] On | [ok] On | [ok] On | [ok] On | [ok] On | [ok] On | [ok] On | [ok] On |
+| **Candle Direction Filter** | â Off | â Off | â Off | â Off | â Off | â Off | â Off | â Off |
+| **EMA Order Condition** | â Off | â Off | â Off | â Off | â Off | â Off | â Off | â Off |
+| **EMA Below Price Filter** | â Off | â Off | â Off | â Off | â Off | â Off | â Off | â Off |
+
+## â° Time Range Filter Configuration
+
+| Parameter | AUDUSD | EURUSD | GBPUSD | USDCHF | XAGUSD | XAUUSD | EURJPY | USDJPY |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| **Time Filter Enabled** | [ok] Yes | [ok] Yes | â No | [ok] Yes | [ok] Yes | â No | â No | â No |
 | **Start Hour (UTC)** | 23:00 | 21:00 | (7:00) | 07:00 | 00:00 | (0:00) | (7:00) | (0:00) |
 | **End Hour (UTC)** | 16:00 | 03:00 | (18:00) | 13:00 | 15:00 | (8:00) | (16:00) | (23:59) |
 
-## 🔄 Window Time Offset Configuration
+## ð Window Time Offset Configuration
 
 | Asset | USE_WINDOW_TIME_OFFSET |
 | :--- | :---: |
@@ -83,9 +83,9 @@ This document serves as the "Source of Truth" for the configuration parameters o
 | XAGUSD | **`True`** |
 | XAUUSD | `False` |
 | EURJPY | `False` |
-| USDJPY | **`True`** ⬅️ Both XAGUSD + USDJPY use time offset! |
+| USDJPY | **`True`** â¬ï¸ Both XAGUSD + USDJPY use time offset! |
 
-## 🧠 Critical Strategy Concepts
+## ð§  Critical Strategy Concepts
 
 ### 1. Pullback Candle vs. Window Candle
 It is crucial to distinguish between the candle that *creates* the setup and the candle that *triggers* the entry.
@@ -120,7 +120,7 @@ When a candle breaks the Failure Limit (without breaking the Entry Target):
 3.  **Candle Consumption**: The candle that caused the failure is "consumed" by the failure event. It is **NOT** counted as the first candle of a new pullback sequence.
 4.  **Next Step**: The strategy waits for the **NEXT** candle to begin searching for a new pullback pattern.
 
-## 📂 Source Files
+## ð Source Files
 - `mt5_live_trading_bot/strategies/kips_strategy_audusd.py`
 - `mt5_live_trading_bot/strategies/kips_strategy_eurusd.py`
 - `mt5_live_trading_bot/strategies/kips_strategy_gbpusd.py`

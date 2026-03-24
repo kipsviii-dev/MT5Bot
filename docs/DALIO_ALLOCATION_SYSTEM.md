@@ -1,8 +1,8 @@
 # Ray Dalio All-Weather Portfolio Allocation System
 
-> **Version:** 2.1 — Dynamic Drawdown Scaling + Trading Modes  
+> **Version:** 2.1  -  Dynamic Drawdown Scaling + Trading Modes  
 > **Last Updated:** March 25, 2026  
-> **Status:** ✅ IMPLEMENTED
+> **Status:** [ok] IMPLEMENTED
 
 ---
 
@@ -12,13 +12,13 @@ This document explains the Ray Dalio All-Weather Portfolio implementation in the
 
 The system provides **economic scenario-based position sizing** across 8 assets, now enhanced with:
 
-- **Two trading modes** — NORMAL (capital preservation) and AGGRESSIVE (max growth)
-- **Dynamic drawdown cap** — the DD limit automatically tightens as your account grows
-- **Small-balance guard** — keeps the bot viable on accounts as small as $100
+- **Two trading modes**  -  NORMAL (capital preservation) and AGGRESSIVE (max growth)
+- **Dynamic drawdown cap**  -  the DD limit automatically tightens as your account grows
+- **Small-balance guard**  -  keeps the bot viable on accounts as small as $100
 
 ---
 
-## 📊 Asset Allocation
+## ð Asset Allocation
 
 | **Asset** | **Allocation** | **Economic Role** |
 |-----------|---------------|-------------------|
@@ -35,9 +35,9 @@ The system provides **economic scenario-based position sizing** across 8 assets,
 
 ---
 
-## 🎭 Trading Modes
+## ð­ Trading Modes
 
-### 🛡 NORMAL — Capital Preservation
+### ð¡ NORMAL  -  Capital Preservation
 
 | Parameter | Value |
 |-----------|-------|
@@ -47,7 +47,7 @@ The system provides **economic scenario-based position sizing** across 8 assets,
 | Max simultaneous risk | 6% of balance |
 | Max layers per symbol | 1 |
 
-### ⚡ AGGRESSIVE — Maximum Growth
+### [!] AGGRESSIVE  -  Maximum Growth
 
 | Parameter | Value |
 |-----------|-------|
@@ -59,19 +59,19 @@ The system provides **economic scenario-based position sizing** across 8 assets,
 
 ---
 
-## 📉 Dynamic Drawdown Cap
+## ð Dynamic Drawdown Cap
 
 The DD cap is **not fixed**. It scales down linearly as the account grows:
 
 ```
-balance ≤ $100   → use HIGH cap   (40% NORMAL / 60% AGGRESSIVE)
-balance ≥ $2,000 → use FLOOR cap  (10% NORMAL / 20% AGGRESSIVE)
-between          → linear interpolation
+balance â¤ $100   -> use HIGH cap   (40% NORMAL / 60% AGGRESSIVE)
+balance â¥ $2,000 -> use FLOOR cap  (10% NORMAL / 20% AGGRESSIVE)
+between          -> linear interpolation
 ```
 
 ### Scaling Table
 
-| Balance | 🛡 NORMAL cap | ⚡ AGGRESSIVE cap |
+| Balance | ð¡ NORMAL cap | [!] AGGRESSIVE cap |
 |---------|--------------|------------------|
 | **$100** | **40%** | **60%** |
 | $250 | 34% | 53% |
@@ -81,64 +81,64 @@ between          → linear interpolation
 | $1,500 | 13% | 27% |
 | **$2,000+** | **10%** | **20%** |
 
-**Why this matters:** On a $100 account you need room to grow. At $2,000+ you have real capital worth protecting — the system tightens automatically with zero manual intervention.
+**Why this matters:** On a $100 account you need room to grow. At $2,000+ you have real capital worth protecting  -  the system tightens automatically with zero manual intervention.
 
 ---
 
-## 💰 Position Sizing Formula
+## ð° Position Sizing Formula
 
 ```
-risk_amount = balance × allocation_pct × risk_pct
+risk_amount = balance Ã allocation_pct Ã risk_pct
 ```
 
-### Example — $100 account, NORMAL mode, XAUUSD
+### Example  -  $100 account, NORMAL mode, XAUUSD
 
 ```
-allocated_capital = $100 × 15% = $15.00
-risk_amount       = $15.00 × 1% = $0.15
-→ Small-balance guard scales to $0.50 minimum
+allocated_capital = $100 Ã 15% = $15.00
+risk_amount       = $15.00 Ã 1% = $0.15
+-> Small-balance guard scales to $0.50 minimum
 DD cap            = 40% (dynamic, at $100 balance)
 ```
 
-### Example — $100 account, AGGRESSIVE mode, XAUUSD
+### Example  -  $100 account, AGGRESSIVE mode, XAUUSD
 
 ```
-allocated_capital = $100 × 15% = $15.00
-risk_amount       = $15.00 × 3% = $0.45
-→ Small-balance guard scales to $0.50 minimum
+allocated_capital = $100 Ã 15% = $15.00
+risk_amount       = $15.00 Ã 3% = $0.45
+-> Small-balance guard scales to $0.50 minimum
 DD cap            = 60% (dynamic, at $100 balance)
 ```
 
-### Example — $1,000 account, NORMAL mode, XAUUSD
+### Example  -  $1,000 account, NORMAL mode, XAUUSD
 
 ```
-allocated_capital = $1,000 × 15% = $150.00
-risk_amount       = $150.00 × 1% = $1.50
-DD cap            = 18% → blocks entries if equity drops below $820
+allocated_capital = $1,000 Ã 15% = $150.00
+risk_amount       = $150.00 Ã 1% = $1.50
+DD cap            = 18% -> blocks entries if equity drops below $820
 ```
 
 ---
 
-## 🛡 Three Safety Guards (executed before every trade)
+## ð¡ Three Safety Guards (executed before every trade)
 
 ```
 Trade Signal Detected
-        ↓
-① Portfolio Drawdown Guard
-   → Is current DD% ≥ dynamic cap? BLOCK ALL ENTRIES
-        ↓
-② Dalio Risk Calculation
-   → Compute risk_amount (mode + balance + small-balance guard)
-        ↓
-③ Simultaneous Risk Guard
-   → Would total open risk exceed mode's exposure cap? BLOCK
-        ↓
-✅ Execute Trade
+        â
+â  Portfolio Drawdown Guard
+   -> Is current DD% â¥ dynamic cap? BLOCK ALL ENTRIES
+        â
+â¡ Dalio Risk Calculation
+   -> Compute risk_amount (mode + balance + small-balance guard)
+        â
+â¢ Simultaneous Risk Guard
+   -> Would total open risk exceed mode's exposure cap? BLOCK
+        â
+[ok] Execute Trade
 ```
 
 ---
 
-## ⚙️ Configuration
+## âï¸ Configuration
 
 ### Switching Trading Mode
 
@@ -155,8 +155,8 @@ ACTIVE_TRADING_MODE = TRADING_MODE_AGGRESSIVE  # max growth
 
 ```python
 # Balance thresholds (in advanced_mt5_monitor_gui.py)
-DD_SCALE_START_BALANCE = 100.0    # below this → use HIGH cap
-DD_SCALE_FLOOR_BALANCE = 2000.0   # above this → use FLOOR cap
+DD_SCALE_START_BALANCE = 100.0    # below this -> use HIGH cap
+DD_SCALE_FLOOR_BALANCE = 2000.0   # above this -> use FLOOR cap
 
 # NORMAL cap range
 DD_CAP_HIGH_NORMAL   = 0.40   # 40% at small balance
@@ -189,7 +189,7 @@ Ensure allocations sum to 1.00.
 
 ---
 
-## 📝 Strategy Files Policy
+## ð Strategy Files Policy
 
 This system modifies **only** `advanced_mt5_monitor_gui.py` and `src/layer_manager.py`.
 
@@ -197,7 +197,7 @@ This system modifies **only** `advanced_mt5_monitor_gui.py` and `src/layer_manag
 
 ---
 
-## 🚀 Deployment Checklist
+## ð Deployment Checklist
 
 - [x] Dynamic DD cap (`_compute_dynamic_dd_cap`)
 - [x] Two trading modes (NORMAL / AGGRESSIVE)
@@ -212,12 +212,12 @@ This system modifies **only** `advanced_mt5_monitor_gui.py` and `src/layer_manag
 
 ---
 
-## 📚 References
+## ð References
 
-- Ray Dalio's All-Weather Portfolio — Bridgewater Associates
-- Modern Portfolio Theory — Harry Markowitz
-- `src/layer_manager.py` — LayerManager (NORMAL/AGGRESSIVE mode-aware)
-- `advanced_mt5_monitor_gui.py` lines 80–240 — full implementation
+- Ray Dalio's All-Weather Portfolio  -  Bridgewater Associates
+- Modern Portfolio Theory  -  Harry Markowitz
+- `src/layer_manager.py`  -  LayerManager (NORMAL/AGGRESSIVE mode-aware)
+- `advanced_mt5_monitor_gui.py` lines 80 - 240  -  full implementation
 
 ---
 

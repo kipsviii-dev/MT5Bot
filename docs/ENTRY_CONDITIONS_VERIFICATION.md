@@ -1,14 +1,14 @@
-# 🔍 Entry Conditions Verification - Original vs Current Implementation
+# ð Entry Conditions Verification - Original vs Current Implementation
 
 **Date:** November 11, 2025  
 **Purpose:** Comprehensive comparison of Backtrader original strategy vs MT5 live implementation  
-**Result:** ✅ 100% MATCH - All entry conditions correctly implemented
+**Result:** [ok] 100% MATCH - All entry conditions correctly implemented
 
 ---
 
-## 📋 Executive Summary
+## ð Executive Summary
 
-**Status:** ✅ **ALL ENTRY CONDITIONS VERIFIED CORRECT**
+**Status:** [ok] **ALL ENTRY CONDITIONS VERIFIED CORRECT**
 
 - **6-Layer Filter Cascade:** Correctly implemented with exact same logic
 - **EMA Crossover Detection:** Matches Backtrader's closed-candle-only behavior
@@ -20,7 +20,7 @@
 
 ---
 
-## 🎯 Filter-by-Filter Comparison
+## ð¯ Filter-by-Filter Comparison
 
 ### **Filter 1: ATR Volatility Filter**
 
@@ -67,10 +67,10 @@ def _validate_atr_filter(self, symbol, df, direction='LONG'):
 ```
 
 **Verification:**
-- ✅ Same enable/disable logic
-- ✅ Identical min/max thresholds (0.000150 - 0.000600)
-- ✅ Increment filter logic matches exactly
-- ✅ Decrement filter preserved (disabled by default)
+- [ok] Same enable/disable logic
+- [ok] Identical min/max thresholds (0.000150 - 0.000600)
+- [ok] Increment filter logic matches exactly
+- [ok] Decrement filter preserved (disabled by default)
 
 ---
 
@@ -119,11 +119,11 @@ def _validate_angle_filter(self, symbol, df, direction='LONG'):
 ```
 
 **Verification:**
-- ✅ Disabled by default (matches original)
-- ✅ Same angle calculation formula
-- ✅ 1-bar lookback (not 3-bar) - corrected to match Backtrader
-- ✅ Scale factor configurable per asset (10000 forex, 10 metals)
-- ✅ Angle range thresholds identical
+- [ok] Disabled by default (matches original)
+- [ok] Same angle calculation formula
+- [ok] 1-bar lookback (not 3-bar) - corrected to match Backtrader
+- [ok] Scale factor configurable per asset (10000 forex, 10 metals)
+- [ok] Angle range thresholds identical
 
 ---
 
@@ -169,10 +169,10 @@ def _validate_price_filter(self, symbol, df, direction='LONG'):
 ```
 
 **Verification:**
-- ✅ Enabled for LONG by default (matches original)
-- ✅ Uses EMA(70) as trend filter
-- ✅ LONG: Requires close > EMA(70) ← Same logic
-- ✅ SHORT: Requires close < EMA(70) ← Same logic
+- [ok] Enabled for LONG by default (matches original)
+- [ok] Uses EMA(70) as trend filter
+- [ok] LONG: Requires close > EMA(70) <- Same logic
+- [ok] SHORT: Requires close < EMA(70) <- Same logic
 
 ---
 
@@ -212,10 +212,10 @@ def _validate_candle_direction(self, symbol, df, direction='LONG'):
 ```
 
 **Verification:**
-- ✅ Disabled by default (matches original)
-- ✅ LONG: Checks close[1] > open[1] ← Same logic
-- ✅ SHORT: Checks close[1] < open[1] ← Same logic
-- ✅ Uses last closed candle (not forming candle)
+- [ok] Disabled by default (matches original)
+- [ok] LONG: Checks close[1] > open[1] <- Same logic
+- [ok] SHORT: Checks close[1] < open[1] <- Same logic
+- [ok] Uses last closed candle (not forming candle)
 
 ---
 
@@ -253,9 +253,9 @@ def _validate_ema_ordering(self, symbol, ema_confirm, ema_fast, ema_medium, ema_
 ```
 
 **Verification:**
-- ✅ Disabled by default (matches original)
-- ✅ LONG: confirm > fast > medium > slow ← Exact same logic
-- ✅ SHORT: confirm < fast < medium < slow ← Exact same logic
+- [ok] Disabled by default (matches original)
+- [ok] LONG: confirm > fast > medium > slow <- Exact same logic
+- [ok] SHORT: confirm < fast < medium < slow <- Exact same logic
 
 ---
 
@@ -302,14 +302,14 @@ def _validate_time_filter(self, symbol, current_dt, direction='LONG'):
 ```
 
 **Verification:**
-- ✅ Disabled by default (matches original)
-- ✅ Same time range parameters (21:00-03:00 UTC)
-- ✅ Handles overnight windows correctly
-- ✅ Minute-level precision
+- [ok] Disabled by default (matches original)
+- [ok] Same time range parameters (21:00-03:00 UTC)
+- [ok] Handles overnight windows correctly
+- [ok] Minute-level precision
 
 ---
 
-## 🔄 EMA Crossover Detection Logic
+## ð EMA Crossover Detection Logic
 
 ### Original Strategy (Backtrader)
 ```python
@@ -326,7 +326,7 @@ def _validate_time_filter(self, symbol, current_dt, direction='LONG'):
 def detect_ema_crossovers(self, symbol, indicators, df):
     """Detect EMA crossovers ONLY ON CLOSED CANDLES"""
     
-    # ⚠️ CRITICAL: df already has forming candle removed!
+    # [warn]ï¸ CRITICAL: df already has forming candle removed!
     # df.iloc[-1] IS the last CLOSED candle
     current_closed_candle_time = df['time'].iloc[-1]
     
@@ -376,16 +376,16 @@ def detect_ema_crossovers(self, symbol, indicators, df):
 ```
 
 **Verification:**
-- ✅ Processes only closed candles (forming candle removed at line 747)
-- ✅ Prevents duplicate processing with timestamp check
-- ✅ Uses iloc[-1] and iloc[-2] for current/previous EMAs
-- ✅ Detects crossovers with same logic: `current > threshold AND prev <= threshold`
-- ✅ Validates ALL 6 filters before storing crossover
-- ✅ Updates last_processed_candle to prevent re-processing
+- [ok] Processes only closed candles (forming candle removed at line 747)
+- [ok] Prevents duplicate processing with timestamp check
+- [ok] Uses iloc[-1] and iloc[-2] for current/previous EMAs
+- [ok] Detects crossovers with same logic: `current > threshold AND prev <= threshold`
+- [ok] Validates ALL 6 filters before storing crossover
+- [ok] Updates last_processed_candle to prevent re-processing
 
 ---
 
-## 🎯 EMA Calculation Comparison
+## ð¯ EMA Calculation Comparison
 
 ### Original Strategy
 ```python
@@ -440,15 +440,15 @@ def calculate_indicators(self, df, symbol):
 ```
 
 **Verification:**
-- ✅ EMA periods loaded from strategy config (18, 18, 24, 70)
-- ✅ Uses `adjust=False` for EMA calculation (matches MT5/Backtrader)
-- ✅ Confirm EMA = close price (1-period EMA)
-- ✅ ATR calculation: max(high-low, |high-prev_close|, |low-prev_close|)
-- ✅ ATR rolling mean over 10 periods
+- [ok] EMA periods loaded from strategy config (18, 18, 24, 70)
+- [ok] Uses `adjust=False` for EMA calculation (matches MT5/Backtrader)
+- [ok] Confirm EMA = close price (1-period EMA)
+- [ok] ATR calculation: max(high-low, |high-prev_close|, |low-prev_close|)
+- [ok] ATR rolling mean over 10 periods
 
 ---
 
-## 📊 Pullback System Comparison
+## ð Pullback System Comparison
 
 ### Original Strategy
 ```python
@@ -466,7 +466,7 @@ WINDOW_PRICE_OFFSET_MULTIPLIER = 0.01
 ```python
 # Pullback system is PRESERVED but currently disabled
 # When enabled, follows 4-phase state machine:
-# SCANNING → ARMED → WINDOW_OPEN → ENTRY
+# SCANNING -> ARMED -> WINDOW_OPEN -> ENTRY
 
 # File: advanced_mt5_monitor_gui.py (pullback logic preserved)
 # Parameters loaded from strategy config:
@@ -478,65 +478,65 @@ WINDOW_PRICE_OFFSET_MULTIPLIER = 0.01
 ```
 
 **Verification:**
-- ✅ Pullback system preserved (code intact)
-- ✅ Currently disabled (matches original LONG_USE_PULLBACK_ENTRY = False)
-- ✅ Same parameters: 2 candles, 1 bar window, 1.0 multiplier
-- ✅ State machine logic complete (ready to enable when needed)
+- [ok] Pullback system preserved (code intact)
+- [ok] Currently disabled (matches original LONG_USE_PULLBACK_ENTRY = False)
+- [ok] Same parameters: 2 candles, 1 bar window, 1.0 multiplier
+- [ok] State machine logic complete (ready to enable when needed)
 
 ---
 
-## 🚨 Critical Differences Found: NONE
+## ð¨ Critical Differences Found: NONE
 
 ### Position Sizing (Fixed)
-**Status:** ✅ **RESOLVED** - Was using hardcoded pip values, now uses MT5 tick_value
+**Status:** [ok] **RESOLVED** - Was using hardcoded pip values, now uses MT5 tick_value
 
 ### Entry Logic
-**Status:** ✅ **PERFECT MATCH** - All 6 filters identical to original
+**Status:** [ok] **PERFECT MATCH** - All 6 filters identical to original
 
 ### EMA Calculations
-**Status:** ✅ **VERIFIED** - Uses adjust=False, matches Backtrader formula
+**Status:** [ok] **VERIFIED** - Uses adjust=False, matches Backtrader formula
 
 ### Crossover Detection
-**Status:** ✅ **CORRECT** - Closed candle only, prevents duplicates
+**Status:** [ok] **CORRECT** - Closed candle only, prevents duplicates
 
 ---
 
-## ✅ Verification Test Results
+## [ok] Verification Test Results
 
 ### Live Trade Validation (from logs)
 
 **XAGUSD Trade (07:25:03):**
-- ✅ Crossover detected: Confirm EMA crossed ABOVE Fast/Medium
-- ✅ ATR filter passed: 0.1055 within range [0.15-0.60]
-- ✅ Angle filter passed: (disabled, auto-pass)
-- ✅ Price filter passed: Close > Filter EMA(70)
-- ✅ Candle direction passed: (disabled, auto-pass)
-- ✅ EMA ordering passed: (disabled, auto-pass)
-- ✅ Time filter passed: Within 00:00-23:59 UTC
-- ✅ **Result:** ARMED_LONG state, trade executed
+- [ok] Crossover detected: Confirm EMA crossed ABOVE Fast/Medium
+- [ok] ATR filter passed: 0.1055 within range [0.15-0.60]
+- [ok] Angle filter passed: (disabled, auto-pass)
+- [ok] Price filter passed: Close > Filter EMA(70)
+- [ok] Candle direction passed: (disabled, auto-pass)
+- [ok] EMA ordering passed: (disabled, auto-pass)
+- [ok] Time filter passed: Within 00:00-23:59 UTC
+- [ok] **Result:** ARMED_LONG state, trade executed
 
 **USDCHF Trade (09:15:05):**
-- ✅ Crossover detected: Confirm EMA crossed ABOVE Fast/Medium/Slow
-- ✅ ATR filter passed: 0.00042 within range
-- ✅ All filters validated (same logic)
-- ✅ **Result:** ARMED_LONG state, trade executed
+- [ok] Crossover detected: Confirm EMA crossed ABOVE Fast/Medium/Slow
+- [ok] ATR filter passed: 0.00042 within range
+- [ok] All filters validated (same logic)
+- [ok] **Result:** ARMED_LONG state, trade executed
 
 ### Filter Configuration Matrix
 
 | Filter | EURUSD | GBPUSD | XAUUSD | AUDUSD | XAGUSD | USDCHF |
 |--------|--------|--------|--------|--------|--------|--------|
-| **ATR** | ✅ Enabled | ✅ Enabled | ✅ Enabled | ✅ Enabled | ✅ Enabled | ✅ Enabled |
-| **Angle** | ❌ Disabled | ❌ Disabled | ❌ Disabled | ❌ Disabled | ❌ Disabled | ❌ Disabled |
-| **Price** | ✅ Enabled | ✅ Enabled | ✅ Enabled | ✅ Enabled | ✅ Enabled | ✅ Enabled |
-| **Candle** | ❌ Disabled | ❌ Disabled | ❌ Disabled | ❌ Disabled | ❌ Disabled | ❌ Disabled |
-| **EMA Order** | ❌ Disabled | ❌ Disabled | ❌ Disabled | ❌ Disabled | ❌ Disabled | ❌ Disabled |
-| **Time** | ❌ Disabled | ❌ Disabled | ❌ Disabled | ❌ Disabled | ❌ Disabled | ❌ Disabled |
+| **ATR** | [ok] Enabled | [ok] Enabled | [ok] Enabled | [ok] Enabled | [ok] Enabled | [ok] Enabled |
+| **Angle** | â Disabled | â Disabled | â Disabled | â Disabled | â Disabled | â Disabled |
+| **Price** | [ok] Enabled | [ok] Enabled | [ok] Enabled | [ok] Enabled | [ok] Enabled | [ok] Enabled |
+| **Candle** | â Disabled | â Disabled | â Disabled | â Disabled | â Disabled | â Disabled |
+| **EMA Order** | â Disabled | â Disabled | â Disabled | â Disabled | â Disabled | â Disabled |
+| **Time** | â Disabled | â Disabled | â Disabled | â Disabled | â Disabled | â Disabled |
 
 **Result:** All assets use identical filter configuration (ATR + Price only)
 
 ---
 
-## 📈 Expected vs Actual Entry Rate
+## ð Expected vs Actual Entry Rate
 
 ### Backtrader Results (Historical)
 - **With all filters:** ~2-3 entries/month per asset
@@ -552,30 +552,30 @@ WINDOW_PRICE_OFFSET_MULTIPLIER = 0.01
 
 ---
 
-## 🎯 Final Verdict
+## ð¯ Final Verdict
 
-### ✅ **ALL ENTRY CONDITIONS VERIFIED CORRECT**
+### [ok] **ALL ENTRY CONDITIONS VERIFIED CORRECT**
 
 **What Was Checked:**
-1. ✅ 6-layer filter cascade logic
-2. ✅ EMA crossover detection (closed candles only)
-3. ✅ ATR volatility thresholds and calculations
-4. ✅ Angle, price, candle, EMA ordering, time filters
-5. ✅ Filter enable/disable flags
-6. ✅ EMA calculation formulas (adjust=False)
-7. ✅ Pullback system preservation (disabled for testing)
-8. ✅ Duplicate prevention mechanisms
+1. [ok] 6-layer filter cascade logic
+2. [ok] EMA crossover detection (closed candles only)
+3. [ok] ATR volatility thresholds and calculations
+4. [ok] Angle, price, candle, EMA ordering, time filters
+5. [ok] Filter enable/disable flags
+6. [ok] EMA calculation formulas (adjust=False)
+7. [ok] Pullback system preservation (disabled for testing)
+8. [ok] Duplicate prevention mechanisms
 
 **What Was Wrong (Now Fixed):**
-1. ❌ Position sizing used hardcoded pip values → ✅ Now uses MT5 tick_value
-2. ❌ Had 0.1 lot safety cap → ✅ Removed, respects broker limits only
+1. â Position sizing used hardcoded pip values -> [ok] Now uses MT5 tick_value
+2. â Had 0.1 lot safety cap -> [ok] Removed, respects broker limits only
 
 **Conclusion:**
 Entry logic is **pristine** and matches original Backtrader strategy with 100% fidelity. The bot will produce identical entry signals to backtesting (after normalizing for live market volatility).
 
 ---
 
-## 📚 Reference Documents
+## ð Reference Documents
 
 - **Original Strategy:** `strategies/kips_strategy_eurusd.py` (and other symbols)
 - **MT5 Implementation:** `advanced_mt5_monitor_gui.py`
@@ -587,4 +587,4 @@ Entry logic is **pristine** and matches original Backtrader strategy with 100% f
 
 **Generated:** November 11, 2025  
 **Verified by:** Entry conditions comparison analysis  
-**Status:** ✅ Production-ready
+**Status:** [ok] Production-ready

@@ -1,4 +1,4 @@
-# Dalio Allocation — Quick Reference (v2.1)
+# Dalio Allocation  -  Quick Reference (v2.1)
 
 > Last updated: March 25, 2026
 
@@ -6,7 +6,7 @@
 
 ## Trading Modes at a Glance
 
-| | 🛡 NORMAL | ⚡ AGGRESSIVE |
+| | ð¡ NORMAL | [!] AGGRESSIVE |
 |---|---|---|
 | Per-trade risk | 1% of allocated | 3% of allocated |
 | DD cap @ $100 | **40%** | **60%** |
@@ -17,9 +17,9 @@
 
 ---
 
-## Dynamic DD Cap — Full Scaling Table
+## Dynamic DD Cap  -  Full Scaling Table
 
-| Balance | 🛡 NORMAL cap | ⚡ AGGRESSIVE cap |
+| Balance | ð¡ NORMAL cap | [!] AGGRESSIVE cap |
 |---------|--------------|------------------|
 | $100 | 40% | 60% |
 | $250 | 34% | 53% |
@@ -29,7 +29,7 @@
 | $1,500 | 13% | 27% |
 | $2,000+ | 10% | 20% |
 
-Cap shrinks automatically as balance grows — no manual changes needed.
+Cap shrinks automatically as balance grows  -  no manual changes needed.
 
 ---
 
@@ -51,7 +51,7 @@ Cap shrinks automatically as balance grows — no manual changes needed.
 ## Risk Calculation Formula
 
 ```
-risk_amount = balance × allocation_pct × risk_pct
+risk_amount = balance Ã allocation_pct Ã risk_pct
 ```
 
 ### $100 account examples
@@ -83,13 +83,13 @@ risk_amount = balance × allocation_pct × risk_pct
 ## Expected Log Output (per trade)
 
 ```
-💰 XAUUSD: Dalio Allocation System  [NORMAL]
-   Portfolio Balance:  $100.00  (SMALL – <$500)
+ð° XAUUSD: Dalio Allocation System  [NORMAL]
+   Portfolio Balance:  $100.00  (SMALL  -  <$500)
    Asset Allocation:   15% = $15.00
    Risk Per Trade:     3.33% of allocated = $0.50
-   Dynamic DD Cap:     40.0%  (scales 40%→10% NORMAL / 60%→20% AGGRESSIVE from $100 to $2000)
+   Dynamic DD Cap:     40.0%  (scales 40%->10% NORMAL / 60%->20% AGGRESSIVE from $100 to $2000)
 
-📊 DD CHECK [NORMAL]: Balance=$100.00 | Equity=$98.50 | DD=1.5% | Dynamic Cap=40.0%
+ð DD CHECK [NORMAL]: Balance=$100.00 | Equity=$98.50 | DD=1.5% | Dynamic Cap=40.0%
 ```
 
 ---

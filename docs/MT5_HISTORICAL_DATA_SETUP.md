@@ -34,7 +34,7 @@ ema_fast_array = df['close'].ewm(span=18).mean()  # Uses all 100 candles
 3. MT5 will load historical data automatically
 
 ### Step 2: Verify Indicator Settings
-1. Right-click any EMA indicator → **Properties**
+1. Right-click any EMA indicator -> **Properties**
 2. Go to **Parameters** tab
 3. Check **"Apply to"** is set to **"Close"**
 4. Check **"Method"** is set to **"Exponential"**
@@ -51,7 +51,7 @@ ema_fast_array = df['close'].ewm(span=18).mean()  # Uses all 100 candles
 ## Solution 2: Configure Chart Max Bars
 
 ### Step 1: Open MT5 Options
-1. Press **Ctrl + O** or go to **Tools → Options**
+1. Press **Ctrl + O** or go to **Tools -> Options**
 2. Click **Charts** tab
 
 ### Step 2: Set Max Bars in Chart
@@ -70,8 +70,8 @@ ema_fast_array = df['close'].ewm(span=18).mean()  # Uses all 100 candles
 ## Solution 3: Force Indicator Recalculation
 
 ### Method A: Refresh Indicator
-1. Right-click the EMA indicator → **Delete**
-2. Re-add the indicator from **Insert → Indicators → Trend → Moving Average**
+1. Right-click the EMA indicator -> **Delete**
+2. Re-add the indicator from **Insert -> Indicators -> Trend -> Moving Average**
 3. Configure period (18, 24, 70, etc.)
 4. Set **Method: Exponential**
 5. Set **Apply to: Close**
@@ -107,9 +107,9 @@ EMA Slow (24): 1.15611
 **MT5 Display (Data Window - Ctrl+D):**
 ```
 Time: 2025.10.14 12:45
-EMA(18): 1.15623  ← Should match bot
-EMA(18): 1.15618  ← Should match bot  
-EMA(24): 1.15611  ← Should match bot
+EMA(18): 1.15623  <- Should match bot
+EMA(18): 1.15618  <- Should match bot  
+EMA(24): 1.15611  <- Should match bot
 ```
 
 ### 3. Check Crossover Points
@@ -132,8 +132,8 @@ EMA(24): 1.15611  ← Should match bot
 **Example:**
 ```
 EMA(18) with only 18 candles: Unstable, jagged
-EMA(18) with 54+ candles: Stable, smooth  ← This is what bot uses
-EMA(18) with 100+ candles: Fully stabilized ← This is ideal
+EMA(18) with 54+ candles: Stable, smooth  <- This is what bot uses
+EMA(18) with 100+ candles: Fully stabilized <- This is ideal
 ```
 
 ### MT5 Default Behavior
@@ -161,9 +161,9 @@ MT5 **does** load historical data, but:
 ```python
 # File: advanced_mt5_monitor_gui.py, Line 714
 rates = mt5.copy_rates_from_pos(symbol, mt5.TIMEFRAME_M5, 0, 100)
-#                                                          ↑   ↑
-#                                                          |   └─ 100 candles
-#                                                          └───── From current time
+#                                                          â   â
+#                                                          |   ââ 100 candles
+#                                                          `--âââ From current time
 ```
 
 ### Bot EMA Calculation (Python Code):
@@ -183,28 +183,28 @@ This is **exactly how backtrader calculates EMAs** - using all available histori
 
 ## Common Mistakes
 
-### ❌ Mistake 1: Zooming In Too Much
+### â Mistake 1: Zooming In Too Much
 ```
 Visible candles: 30-40 candles (2-3 hours)
 EMA calculation: Starting from first visible candle
 Result: Jagged EMAs at chart start
 ```
 
-### ✅ Correct: Show Sufficient History
+### [ok] Correct: Show Sufficient History
 ```
 Visible candles: 120-150 candles (10+ hours)
 EMA calculation: Has proper historical context
 Result: Smooth EMAs matching bot
 ```
 
-### ❌ Mistake 2: Not Scrolling Back
+### â Mistake 2: Not Scrolling Back
 ```
 Chart starts at: 11:00 (current time minus 2 hours)
 Bot calculates from: 02:40 (current time minus 8.3 hours)
 Result: Different EMA curves
 ```
 
-### ✅ Correct: Load Full History
+### [ok] Correct: Load Full History
 ```
 Chart starts at: 04:00 (current time minus 8+ hours)
 Bot calculates from: Similar timeframe
@@ -218,12 +218,12 @@ Result: Matching EMA curves
 ### Check 1: Verify Bot Is Using Correct Data
 Run this in bot terminal/logs to see data range:
 ```
-Look for: "SUCCESS: ✅ EURUSD indicators calculated successfully"
+Look for: "SUCCESS: [ok] EURUSD indicators calculated successfully"
 Check terminal for: First and last candle times
 ```
 
 ### Check 2: MT5 Data Quality
-1. Right-click chart → **Properties**
+1. Right-click chart -> **Properties**
 2. Check **"Show OHLC"** (Open, High, Low, Close data)
 3. Compare close prices with bot terminal output
 4. They should match exactly
@@ -254,32 +254,32 @@ This ensures MT5 indicators have the same historical context as the bot.
 ### Before Fix (Your Current Situation):
 ```
 MT5 Chart:        [==Jagged EMAs==|===Smooth===]
-                   ↑ Not enough    ↑ Good here
+                   â Not enough    â Good here
                    historical data
 
 Bot Chart:        [========Smooth Throughout========]
-                   ↑ Has full 100-candle history
+                   â Has full 100-candle history
 ```
 
 ### After Fix (Goal):
 ```
 MT5 Chart:        [========Smooth Throughout========]
-                   ↑ Now has enough history
+                   â Now has enough history
 
 Bot Chart:        [========Smooth Throughout========]
-                   ↑ Still using 100 candles
+                   â Still using 100 candles
 
-Both charts now align perfectly! ✅
+Both charts now align perfectly! [ok]
 ```
 
 ---
 
 ## Next Steps
 
-1. ✅ Apply **Solution 1** (scroll back and zoom out)
-2. ✅ Verify EMAs are now smooth in MT5
-3. ✅ Compare values between bot and MT5 at same time
-4. ✅ If still different, apply **Solution 2** (max bars setting)
-5. ✅ If still different, apply **Solution 3** (force recalculation)
+1. [ok] Apply **Solution 1** (scroll back and zoom out)
+2. [ok] Verify EMAs are now smooth in MT5
+3. [ok] Compare values between bot and MT5 at same time
+4. [ok] If still different, apply **Solution 2** (max bars setting)
+5. [ok] If still different, apply **Solution 3** (force recalculation)
 
 The bot is correct - it replicates backtrader behavior perfectly. MT5 just needs to be configured to show the same historical context.

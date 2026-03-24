@@ -1,24 +1,24 @@
 # IMPORTANT: Strategy Files Policy
 
 **Date:** October 22, 2025  
-**Status:** ✅ CORRECTED
+**Status:** [ok] CORRECTED
 
 ---
 
 ## Critical Rule Established
 
-### ❌ NEVER MODIFY STRATEGY FILES
+### â NEVER MODIFY STRATEGY FILES
 
 The files in `strategies/` folder are the **SOURCE OF TRUTH** for backtesting:
 
 ```
 strategies/
-├── kips_strategy_audusd.py    ❌ READ ONLY
-├── kips_strategy_eurusd.py    ❌ READ ONLY  
-├── kips_strategy_gbpusd.py    ❌ READ ONLY
-├── kips_strategy_usdchf.py    ❌ READ ONLY
-├── kips_strategy_xagusd.py    ❌ READ ONLY
-└── kips_strategy_xauusd.py    ❌ READ ONLY
+|-- kips_strategy_audusd.py    â READ ONLY
+|-- kips_strategy_eurusd.py    â READ ONLY  
+|-- kips_strategy_gbpusd.py    â READ ONLY
+|-- kips_strategy_usdchf.py    â READ ONLY
+|-- kips_strategy_xagusd.py    â READ ONLY
+`-- kips_strategy_xauusd.py    â READ ONLY
 ```
 
 ---
@@ -44,31 +44,31 @@ strategies/
 ## What Was Corrected
 
 ### Changes Made (and Reverted)
-- ❌ Added type: ignore comments
-- ❌ Modified pullback logic  
-- ❌ Changed global invalidation
-- ❌ Added None checks
+- â Added type: ignore comments
+- â Modified pullback logic  
+- â Changed global invalidation
+- â Added None checks
 
 **All reverted using:** `git checkout -- strategies/`
 
 ### Current Status
-✅ All 6 strategy files restored to original state  
-✅ No changes in strategies/ folder  
-✅ Git working tree clean for strategies/
+[ok] All 6 strategy files restored to original state  
+[ok] No changes in strategies/ folder  
+[ok] Git working tree clean for strategies/
 
 ---
 
 ## Correct Approach Going Forward
 
-### ✅ DO: Modify GUI Monitor
+### [ok] DO: Modify GUI Monitor
 All fixes should go in:
-- `advanced_mt5_monitor_gui.py` ✅ ALLOWED
+- `advanced_mt5_monitor_gui.py` [ok] ALLOWED
 
 This file adapts the strategy logic for live MT5 trading and can be modified freely.
 
-### ❌ DON'T: Modify Strategy Files
+### â DON'T: Modify Strategy Files
 These files are READ-ONLY:
-- `strategies/kips_strategy_*.py` ❌ FORBIDDEN
+- `strategies/kips_strategy_*.py` â FORBIDDEN
 
 If backtrader strategy needs changes, user must do it manually after verification.
 
@@ -77,12 +77,12 @@ If backtrader strategy needs changes, user must do it manually after verificatio
 ## Documentation Updated
 
 Created:
-- ✅ This file (`STRATEGY_FILES_POLICY.md`)
-- ✅ Warning in all relevant documentation
+- [ok] This file (`STRATEGY_FILES_POLICY.md`)
+- [ok] Warning in all relevant documentation
 
 Removed:
-- ❌ `STRATEGY_FILES_CHANGES_ANALYSIS.md` (no longer relevant)
-- ❌ All references to modifying strategy files
+- â `STRATEGY_FILES_CHANGES_ANALYSIS.md` (no longer relevant)
+- â All references to modifying strategy files
 
 ---
 
@@ -106,7 +106,7 @@ Removed:
 
 ### What's NOT Being Committed:
 
-4. **strategies/** ✅ UNCHANGED
+4. **strategies/** [ok] UNCHANGED
    - All files reverted to original
    - No modifications
    - Backtrader integrity preserved
@@ -116,15 +116,15 @@ Removed:
 ## Lesson Learned
 
 **AI Assistant should:**
-- ✅ Read strategy files for understanding
-- ✅ Implement logic in GUI monitor
-- ✅ Document differences between backtrader and live implementation
-- ❌ NEVER modify strategy files directly
+- [ok] Read strategy files for understanding
+- [ok] Implement logic in GUI monitor
+- [ok] Document differences between backtrader and live implementation
+- â NEVER modify strategy files directly
 
 **User controls:**
-- ✅ Strategy file modifications (manual only)
-- ✅ Backtrader testing and validation
-- ✅ Approval of any strategy logic changes
+- [ok] Strategy file modifications (manual only)
+- [ok] Backtrader testing and validation
+- [ok] Approval of any strategy logic changes
 
 ---
 
@@ -134,8 +134,8 @@ Removed:
 fix: Critical pullback detection + EMA bugs in GUI monitor
 
 ROOT CAUSE (Bug 6): Double candle removal in crossover detection
-- Fixed iloc[-2] → iloc[-1] for current closed candle (line 829)
-- Fixed df[:-1] → df for EMA calculation (line 848)
+- Fixed iloc[-2] -> iloc[-1] for current closed candle (line 829)
+- Fixed df[:-1] -> df for EMA calculation (line 848)
 
 ALL 7 BUGS FIXED:
 - Bug 1-5: Previous pullback fixes
@@ -171,4 +171,4 @@ Strategy files: UNCHANGED (backtrader originals preserved)
 
 **Policy Established:** October 22, 2025  
 **Verified By:** User  
-**Status:** ✅ ENFORCED
+**Status:** [ok] ENFORCED
