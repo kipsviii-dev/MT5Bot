@@ -13,7 +13,7 @@
 ## ?? What This Bot Does
 
 **Automated trading system** for MetaTrader 5 with:
-- ?? **Ray Dalio Portfolio Allocation** - Economic scenario-based position sizing across 8 assets (18% XAUUSD, 15% USDCHF/AUDUSD, 13% GBPUSD, 12% EURUSD/XAGUSD, 8% USDJPY, 7% EURJPY)
+- ?? **Ray Dalio Portfolio Allocation v2.1** - Two trading modes (NORMAL / AGGRESSIVE) with a dynamic drawdown cap that automatically tightens as the account grows â€” viable from $100 upwards
 - ??? **6-Layer Entry Filters** - Validates ATR, Angle, Price, Candle Direction, EMA Ordering, and Time before every trade
 - ?? **Real-Time GUI** - Live charts, EMA overlays, strategy states, and comprehensive monitoring
 - ?? **4-Phase State Machine** - SCANNING ? ARMED ? WINDOW_OPEN ? ENTRY with pullback confirmation
@@ -65,26 +65,33 @@ dist\MT5_Trading_Bot.exe
 
 ## ?? System Architecture
 
-### Ray Dalio All-Weather Portfolio Allocation
+### Ray Dalio All-Weather Portfolio Allocation (v2.1)
 
-**Economic scenario-based position sizing** protecting against inflation, deflation, growth, and recession:
+**Economic scenario-based position sizing** with two trading modes and a dynamic drawdown cap:
 
-| Asset | Allocation | Economic Role | Example Risk* |
-|-------|-----------|---------------|---------------|
-| **XAUUSD** | 18% | Inflation hedge (gold) | $90.14 |
-| **USDCHF** | 15% | Deflation hedge (safe haven) | $75.12 |
-| **GBPUSD** | 13% | Balanced growth | $65.10 |
-| **EURUSD** | 12% | Balanced growth | $60.09 |
-| **XAGUSD** | 12% | Commodity exposure | $60.09 |
-| **AUDUSD** | 15% | Commodity currency | $75.12 |
-| **USDJPY** | 8% | JPY carry trade | $40.06 |
-| **EURJPY** | 7% | JPY cross exposure | $35.05 |
+| Asset | Allocation | Economic Role |
+|-------|-----------|---------------|
+| **XAUUSD** | 15% | Inflation hedge (gold) |
+| **USDCHF** | 15% | Deflation hedge (safe haven) |
+| **GBPUSD** | 12% | Balanced forex |
+| **EURUSD** | 12% | Balanced forex |
+| **XAGUSD** | 12% | Commodity (silver) |
+| **AUDUSD** | 10% | Commodity currency |
+| **EURJPY** | 12% | JPY cross (carry trade) |
+| **USDJPY** | 12% | JPY core pair |
 
-*Based on $50,078 portfolio with 1% risk per allocation
+### Trading Modes
 
-**Key Benefit:** Maximum 1% total portfolio risk even if all 8 assets signal simultaneously (vs 8% with equal weighting)
+| | ?? NORMAL | ??? AGGRESSIVE |
+|---|---|---|
+| Per-trade risk | 1% of allocated | 3% of allocated |
+| DD cap @ $100 | **40%** | **60%** |
+| DD cap @ $2,000+ | **10%** | **20%** |
+| Layers/symbol | 1 | 3 |
 
-?? **Full Documentation:** [DALIO_ALLOCATION_SYSTEM.md](docs/DALIO_ALLOCATION_SYSTEM.md)
+**Dynamic DD cap** shrinks automatically as balance grows â€” protecting profits without manual changes.
+
+?? **Full Documentation:** [DALIO_ALLOCATION_SYSTEM.md](docs/DALIO_ALLOCATION_SYSTEM.md) | [DALIO_QUICK_REFERENCE.md](docs/DALIO_QUICK_REFERENCE.md)
 
 ---
 
@@ -126,22 +133,22 @@ FAILED ? SKIP (Return to SCANNING)
 
 ```
 +-------------------------------------------------------------+
-¦ SCANNING ? Monitoring for valid crossovers (6-layer check) ¦
+ï¿½ SCANNING ? Monitoring for valid crossovers (6-layer check) ï¿½
 +-------------------------------------------------------------+
                           ? All filters pass
 +-------------------------------------------------------------+
-¦ ARMED ? Waiting for pullback confirmation (1-3 candles)    ¦
-¦   ?? Global invalidation: Counter-crossover resets state   ¦
+ï¿½ ARMED ? Waiting for pullback confirmation (1-3 candles)    ï¿½
+ï¿½   ?? Global invalidation: Counter-crossover resets state   ï¿½
 +-------------------------------------------------------------+
                           ? Pullback complete
 +-------------------------------------------------------------+
-¦ WINDOW_OPEN ? 2-sided breakout window active (1-20 bars)   ¦
-¦   Success boundary ? Execute trade                          ¦
-¦   Failure boundary ? Reset to SCANNING                      ¦
+ï¿½ WINDOW_OPEN ? 2-sided breakout window active (1-20 bars)   ï¿½
+ï¿½   Success boundary ? Execute trade                          ï¿½
+ï¿½   Failure boundary ? Reset to SCANNING                      ï¿½
 +-------------------------------------------------------------+
                           ? Breakout detected
 +-------------------------------------------------------------+
-¦ ENTRY ? Trade executed with ATR-based SL/TP                ¦
+ï¿½ ENTRY ? Trade executed with ATR-based SL/TP                ï¿½
 +-------------------------------------------------------------+
 ```
 
@@ -166,8 +173,8 @@ FAILED ? SKIP (Return to SCANNING)
 - Rebalanced all allocations to maintain 100% total
 
 **Strategy Files:**
-- `sunrise_ogle_eurjpy.py` - EURJPY LONG-only strategy
-- `sunrise_ogle_usdjpy.py` - USDJPY LONG-only strategy
+- `kips_strategy_eurjpy.py` - EURJPY LONG-only strategy
+- `kips_strategy_usdjpy.py` - USDJPY LONG-only strategy
 
 ### ? UTC Timezone & DST Fix (v2.2.0 - November 16, 2025)
 
@@ -210,8 +217,8 @@ XAGUSD: Risk $0.46 instead of $75.12 (163x too small!) ?
 ```python
 # Dynamic broker-specific calculation
 tick_value = mt5.symbol_info(symbol).trade_tick_value  # Real broker specs
-value_per_point = tick_value × (point / tick_size)
-lot_size = risk_amount / (sl_distance × value_per_point)  ?
+value_per_point = tick_value ï¿½ (point / tick_size)
+lot_size = risk_amount / (sl_distance ï¿½ value_per_point)  ?
 ```
 
 **Enhanced Logging:** Every trade now shows 5 sections:
@@ -241,35 +248,35 @@ mt5_live_trading_bot/
 +-- requirements.txt               # Python dependencies
 +-- setup.ps1                      # Automated setup
 +-- build_exe.bat                  # Build Windows executable
-¦
+ï¿½
 +-- config/                        # Configuration
-¦   +-- mt5_credentials_template.json
-¦   +-- mt5_credentials.json       # (your credentials - gitignored)
-¦
+ï¿½   +-- mt5_credentials_template.json
+ï¿½   +-- mt5_credentials.json       # (your credentials - gitignored)
+ï¿½
 +-- strategies/                    # Asset-specific parameters
-¦   +-- sunrise_ogle_eurusd.py     # EURUSD strategy (READ-ONLY)
-¦   +-- sunrise_ogle_gbpusd.py     # GBPUSD strategy (READ-ONLY)
-¦   +-- sunrise_ogle_xauusd.py     # XAUUSD strategy (READ-ONLY)
-¦   +-- sunrise_ogle_audusd.py     # AUDUSD strategy (READ-ONLY)
-¦   +-- sunrise_ogle_xagusd.py     # XAGUSD strategy (READ-ONLY)
-¦   +-- sunrise_ogle_usdchf.py     # USDCHF strategy (READ-ONLY)
-¦   +-- sunrise_ogle_eurjpy.py     # EURJPY strategy (READ-ONLY)
-¦   +-- sunrise_ogle_usdjpy.py     # USDJPY strategy (READ-ONLY)
-¦
+ï¿½   +-- kips_strategy_eurusd.py     # EURUSD strategy (READ-ONLY)
+ï¿½   +-- kips_strategy_gbpusd.py     # GBPUSD strategy (READ-ONLY)
+ï¿½   +-- kips_strategy_xauusd.py     # XAUUSD strategy (READ-ONLY)
+ï¿½   +-- kips_strategy_audusd.py     # AUDUSD strategy (READ-ONLY)
+ï¿½   +-- kips_strategy_xagusd.py     # XAGUSD strategy (READ-ONLY)
+ï¿½   +-- kips_strategy_usdchf.py     # USDCHF strategy (READ-ONLY)
+ï¿½   +-- kips_strategy_eurjpy.py     # EURJPY strategy (READ-ONLY)
+ï¿½   +-- kips_strategy_usdjpy.py     # USDJPY strategy (READ-ONLY)
+ï¿½
 +-- testing/                       # Test suite
-¦   +-- test_setup.py              # Verify installation
-¦   +-- test_monitor_components.py # GUI tests
-¦   +-- test_mt5_order.py          # Order execution test
-¦   +-- check_broker_specs.py      # Broker verification
-¦   +-- test_position_sizing.py    # Position sizing tests
-¦   +-- test_jpy_entries.py        # JPY pairs validation tests
-¦   +-- verify_all_symbols.py      # Symbol configuration check
-¦
+ï¿½   +-- test_setup.py              # Verify installation
+ï¿½   +-- test_monitor_components.py # GUI tests
+ï¿½   +-- test_mt5_order.py          # Order execution test
+ï¿½   +-- check_broker_specs.py      # Broker verification
+ï¿½   +-- test_position_sizing.py    # Position sizing tests
+ï¿½   +-- test_jpy_entries.py        # JPY pairs validation tests
+ï¿½   +-- verify_all_symbols.py      # Symbol configuration check
+ï¿½
 +-- docs/                          # Documentation
-¦   +-- README.md                  # Documentation index
-¦   +-- START_TESTING_HERE.md      # Quick start guide
-¦   +-- archive/                   # Historical docs
-¦
+ï¿½   +-- README.md                  # Documentation index
+ï¿½   +-- START_TESTING_HERE.md      # Quick start guide
+ï¿½   +-- archive/                   # Historical docs
+ï¿½
 +-- logs/                          # Application logs (gitignored)
 ```
 
@@ -359,9 +366,12 @@ Each strategy file in `strategies/` contains:
 
 ### Safety Features
 
-- ? **Ray Dalio Allocation** - Maximum 1% portfolio risk across all assets
+- ? **Ray Dalio Allocation v2.1** - Two modes (NORMAL/AGGRESSIVE), dynamic DD cap $100â†’$2,000+
+- ? **Portfolio Drawdown Guard** - Blocks all new entries once DD cap reached
+- ? **Simultaneous Risk Guard** - Caps total open exposure across all positions
+- ? **Small-Balance Guard** - Keeps bot viable on accounts as small as $100
 - ? **6-Layer Filters** - Validates every signal before entry
-- ? **ATR-Based SL/TP** - Dynamic stop loss (4.5x ATR) and take profit (6.5x ATR)
+- ? **ATR-Based SL/TP** - Dynamic stop loss and take profit
 - ? **MT5 Broker Integration** - Uses actual tick values (not hardcoded)
 - ? **Global Invalidation** - Counter-trend crossovers reset armed states
 - ? **Duplicate Prevention** - Checks existing positions before entry

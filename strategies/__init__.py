@@ -9,61 +9,61 @@ These strategies are completely independent from the original quant_bot_project
 development environment and can be used for live trading without external dependencies.
 
 Available Strategies:
-- sunrise_ogle_eurusd: EUR/USD trading strategy
-- sunrise_ogle_gbpusd: GBP/USD trading strategy  
-- sunrise_ogle_xauusd: Gold (XAU/USD) trading strategy
-- sunrise_ogle_audusd: AUD/USD trading strategy
-- sunrise_ogle_xagusd: Silver (XAG/USD) trading strategy
-- sunrise_ogle_usdchf: USD/CHF trading strategy
+- kips_strategy_eurusd: EUR/USD trading strategy
+- kips_strategy_gbpusd: GBP/USD trading strategy  
+- kips_strategy_xauusd: Gold (XAU/USD) trading strategy
+- kips_strategy_audusd: AUD/USD trading strategy
+- kips_strategy_xagusd: Silver (XAG/USD) trading strategy
+- kips_strategy_usdchf: USD/CHF trading strategy
 """
 
 # Import all strategies for easier access
 try:
-    from .sunrise_ogle_eurusd import SunriseOgle as SunriseOgleEURUSD
+    from .kips_strategy_eurusd import KipsStrategy as KipsStrategyEURUSD
 except ImportError:
-    SunriseOgleEURUSD = None
+    KipsStrategyEURUSD = None
 
 try:
-    from .sunrise_ogle_gbpusd import SunriseOgle as SunriseOgleGBPUSD
+    from .kips_strategy_gbpusd import KipsStrategy as KipsStrategyGBPUSD
 except ImportError:
-    SunriseOgleGBPUSD = None
+    KipsStrategyGBPUSD = None
 
 try:
-    from .sunrise_ogle_xauusd import SunriseOgle as SunriseOgleXAUUSD
+    from .kips_strategy_xauusd import KipsStrategy as KipsStrategyXAUUSD
 except ImportError:
-    SunriseOgleXAUUSD = None
+    KipsStrategyXAUUSD = None
 
 try:
-    from .sunrise_ogle_audusd import SunriseOgle as SunriseOgleAUDUSD
+    from .kips_strategy_audusd import KipsStrategy as KipsStrategyAUDUSD
 except ImportError:
-    SunriseOgleAUDUSD = None
+    KipsStrategyAUDUSD = None
 
 try:
-    from .sunrise_ogle_xagusd import SunriseOgle as SunriseOgleXAGUSD
+    from .kips_strategy_xagusd import KipsStrategy as KipsStrategyXAGUSD
 except ImportError:
-    SunriseOgleXAGUSD = None
+    KipsStrategyXAGUSD = None
 
 try:
-    from .sunrise_ogle_usdchf import SunriseOgle as SunriseOgleUSDCHF
+    from .kips_strategy_usdchf import KipsStrategy as KipsStrategyUSDCHF
 except ImportError:
-    SunriseOgleUSDCHF = None
+    KipsStrategyUSDCHF = None
 
 # Export all available strategies
 __all__ = [
-    'SunriseOgleEURUSD',
-    'SunriseOgleGBPUSD', 
-    'SunriseOgleXAUUSD',
-    'SunriseOgleAUDUSD',
-    'SunriseOgleXAGUSD',
-    'SunriseOgleUSDCHF'
+    'KipsStrategyEURUSD',
+    'KipsStrategyGBPUSD', 
+    'KipsStrategyXAUUSD',
+    'KipsStrategyAUDUSD',
+    'KipsStrategyXAGUSD',
+    'KipsStrategyUSDCHF'
 ]
 
 # Strategy mapping for easy access
 STRATEGY_CLASSES = {
-    'EURUSD': SunriseOgleEURUSD,
-    'GBPUSD': SunriseOgleGBPUSD,
-    'XAUUSD': SunriseOgleXAUUSD,
-    'AUDUSD': SunriseOgleAUDUSD,
-    'XAGUSD': SunriseOgleXAGUSD,
-    'USDCHF': SunriseOgleUSDCHF
+    'EURUSD': KipsStrategyEURUSD,
+    'GBPUSD': KipsStrategyGBPUSD,
+    'XAUUSD': KipsStrategyXAUUSD,
+    'AUDUSD': KipsStrategyAUDUSD,
+    'XAGUSD': KipsStrategyXAGUSD,
+    'USDCHF': KipsStrategyUSDCHF
 }

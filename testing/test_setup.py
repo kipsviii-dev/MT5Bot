@@ -181,12 +181,12 @@ def test_strategy_imports():
         sys.path.insert(0, str(local_strategies_dir))
         
         strategies_to_test = [
-            'sunrise_ogle_eurusd',
-            'sunrise_ogle_gbpusd', 
-            'sunrise_ogle_xauusd',
-            'sunrise_ogle_audusd',
-            'sunrise_ogle_xagusd',
-            'sunrise_ogle_usdchf'
+            'kips_strategy_eurusd',
+            'kips_strategy_gbpusd', 
+            'kips_strategy_xauusd',
+            'kips_strategy_audusd',
+            'kips_strategy_xagusd',
+            'kips_strategy_usdchf'
         ]
         
         imported_strategies = []

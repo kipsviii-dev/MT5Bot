@@ -30,6 +30,13 @@ QUICK_TEST = False                    # True: Reduce to last 10 days for quick t
 LIMIT_BARS = 0                        # >0: Stop after N bars processed (0 = no limit)
 ENABLE_PLOT = True                    # Show final chart with trades (requires matplotlib)
 
+# === TRADING MODE ===
+# NORMAL     : Conservative – London Open + NY AM kill zones only, 4H trend must be
+#              BULLISH or NEUTRAL, strict ATR range, single position.
+# AGGRESSIVE : All 5 kill zones active, up to 3 layered positions, softer ATR bounds,
+#              automatic breakeven and de-risk logic.
+TRADING_MODE = 'NORMAL'               # 'NORMAL' or 'AGGRESSIVE'
+
 # === FOREX CONFIGURATION ===
 ENABLE_FOREX_CALC = True              # Enable advanced forex position calculations
 FOREX_INSTRUMENT = 'EURJPY'           # Fixed to EURJPY
@@ -97,7 +104,7 @@ ENTRY_END_HOUR = 16                       # End hour for entry window (UTC) - NY
 ENTRY_END_MINUTE = 0                      # End minute for entry window (UTC)
 
 
-class SunriseOgle(bt.Strategy):
+class KipsStrategy(bt.Strategy):
     params = dict(
         # === TECHNICAL INDICATORS ===
         ema_fast_length=18,              # Fast EMA period for trend detection
@@ -1563,7 +1570,7 @@ class SunriseOgle(bt.Strategy):
                 self.limit_order = None
         
         # Enhanced summary calculation with debug stats
-        print("=== SUNRISE OGLE SUMMARY ===")
+        print("=== KIPS STRATEGY SUMMARY ===")
         
         # Calculate metrics
         wr = (self.wins / self.trades * 100.0) if self.trades else 0.0
@@ -1693,10 +1700,10 @@ if __name__ == '__main__':
     cerebro.adddata(data)
     cerebro.broker.setcash(STARTING_CASH)
     cerebro.broker.setcommission(leverage=30.0)
-    cerebro.addstrategy(SunriseOgle, **STRAT_KWARGS)
-    try: cerebro.addobserver(bt.observers.BuySell, barplot=False, plotdist=SunriseOgle.params.buy_sell_plotdist)
+    cerebro.addstrategy(KipsStrategy, **STRAT_KWARGS)
+    try: cerebro.addobserver(bt.observers.BuySell, barplot=False, plotdist=KipsStrategy.params.buy_sell_plotdist)
     except Exception: pass
-    if SunriseOgle.params.plot_sltp_lines:
+    if KipsStrategy.params.plot_sltp_lines:
         try: cerebro.addobserver(SLTPObserver)
         except Exception: pass
     try: cerebro.addobserver(bt.observers.Value)
@@ -1704,14 +1711,14 @@ if __name__ == '__main__':
 
     if LIMIT_BARS > 0:
         # Monkey-patch next() to stop early after LIMIT_BARS bars for quick experimentation.
-        orig_next = SunriseOgle.next
+        orig_next = KipsStrategy.next
         def limited_next(self):
             if len(self.data) >= LIMIT_BARS:
                 self.env.runstop(); return
             orig_next(self)
-        SunriseOgle.next = limited_next
+        KipsStrategy.next = limited_next
 
-    print(f"=== SUNRISE OGLE === (from {FROMDATE} to {TODATE})")
+    print(f"=== KIPS STRATEGY === (from {FROMDATE} to {TODATE})")
     if ENABLE_FOREX_CALC:
         print(f">> FOREX MODE ENABLED - Data: {DATA_FILENAME}")
         print(f">> Instrument: EURJPY (EUR/JPY)")

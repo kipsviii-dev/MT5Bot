@@ -28,13 +28,13 @@
 
 ### **Configuration Discovery:**
 
-**EURUSD Strategy File** (`sunrise_ogle_eurusd.py` Line 214):
+**EURUSD Strategy File** (`kips_strategy_eurusd.py` Line 214):
 ```python
 LONG_USE_PULLBACK_ENTRY = False            # DISABLED: Use standard entries for testing
 LONG_PULLBACK_MAX_CANDLES = 2              # (Ignored when pullback disabled)
 ```
 
-**XAUUSD Strategy File** (`sunrise_ogle_xauusd.py` Line 283-284):
+**XAUUSD Strategy File** (`kips_strategy_xauusd.py` Line 283-284):
 ```python
 LONG_USE_PULLBACK_ENTRY = True             # Enable 3-phase pullback entry system
 LONG_PULLBACK_MAX_CANDLES = 3              # Max red candles in pullback
@@ -64,7 +64,7 @@ if signal_direction:
 
 **Original Backtrader Strategy Behavior (CORRECT):**
 ```python
-# Line 1838 - sunrise_ogle_xauusd.py
+# Line 1838 - kips_strategy_xauusd.py
 if self.p.long_use_pullback_entry:
     long_signal = self._handle_pullback_entry(dt, 'LONG')  # 3-phase system
 else:

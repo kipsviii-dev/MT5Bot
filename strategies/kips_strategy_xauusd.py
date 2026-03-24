@@ -1,16 +1,9 @@
-"""Advanced Sunrise Strategy - AUDUSD Trading System
+"""Advanced Sunrise Strategy - XAUUSD Trading System
 ==================================================
-AUDUSD VERSION: This is a specialized version optimized exclusively for AUDUSD (Australian Dollar vs USD) trading.
-Adapted from the original strategy with Australian Dollar forex-specific parameters and configurations.
+GOLD VERSION: This is a specialized version optimized exclusively for XAUUSD (Gold vs USD) trading.
+Adapted from the original strategy with Gold-specific parameters and configurations.
 
-🇦🇺 AUDUSD-SPECIFIC OPTIMIZATIONS:
-  - Volatility parameters tuned for Australian Dollar's forex characteristics
-  - Adjusted ATR thresholds for AUDUSD's typical forex volatility range
-  - Modified angle scale factors for Australian Dollar price movements
-  - Optimized stop-loss and take-profit multipliers for AUDUSD characteristics
-  - Enhanced pullback detection for Australian Dollar forex patterns
-
-This strategy implements a sophisticated trading system optimized for AUDUSD with the following features:
+This strategy implements a sophisticated trading system optimized for XAUUSD with the following features:
 
 ENTRY MODES
 -----------
@@ -77,22 +70,20 @@ SHORT CONDITIONS:
 5. ⚙️ Optional: Angle filter (EMA slope < minimum degrees)
 6. ⚙️ Optional: ATR volatility filter (minimum ATR + volatility change)
 
-ATR VOLATILITY FILTER (AUDUSD-OPTIMIZED)
------------------------------------------
-🌊 PURPOSE: Ensures trades occur during sufficient market volatility for Australian Dollar forex
-   - AUDUSD typically shows standard forex volatility patterns
-   - LONG: ATR range adjusted for forex pip values with decrement filtering
-   - SHORT: ATR range adjusted for forex pip values with increment filtering
-   - ATR change requirement measures Australian Dollar momentum direction
+ATR VOLATILITY FILTER
+----------------------
+🌊 PURPOSE: Ensures trades occur during sufficient market volatility
+   - LONG: ATR range 0.000200-0.000600 with decrement filtering (-0.000050 to -0.000001)
+   - SHORT: ATR range 0.000400-0.000750 with increment filtering (0.000010 to 0.000150)
+   - ATR change requirement measures market momentum direction
    - Pullback mode: Compares ATR from signal detection to breakout phase
-   - Standard mode: Checks current ATR against minimum threshold for AUDUSD moves
+   - Standard mode: Checks current ATR against minimum threshold
 
-EXIT SYSTEM (AUDUSD-TUNED)
---------------------------
-🎯 PRIMARY: ATR-based Stop Loss & Take Profit (OCA orders) - AUDUSD Optimized
-   - LONG: Stop Loss = entry_bar_low - (ATR × 3.0), Take Profit = entry_bar_high + (ATR × 10.0)
-   - SHORT: Stop Loss = entry_bar_high + (ATR × 3.0), Take Profit = entry_bar_low - (ATR × 8.0)
-   - Australian Dollar multipliers adjusted for forex volatility and momentum characteristics
+EXIT SYSTEM
+-----------
+🎯 PRIMARY: ATR-based Stop Loss & Take Profit (OCA orders)
+   - LONG: Stop Loss = entry_bar_low - (ATR × 2.5), Take Profit = entry_bar_high + (ATR × 12.0)
+   - SHORT: Stop Loss = entry_bar_high + (ATR × 2.5), Take Profit = entry_bar_low - (ATR × 6.5)
    
 ⚙️ OPTIONAL EXITS:
    - Time-based: Close after N bars in position
@@ -100,16 +91,15 @@ EXIT SYSTEM (AUDUSD-TUNED)
 
 MULTI-ASSET SUPPORT
 -------------------
-🇦🇺 FOREX PAIR: AUDUSD (Australian Dollar vs US Dollar)
-   - Standard 100,000 AUD contract sizes
-   - Standard forex pip values (4 decimal places)
-   - Standard forex leverage options
-   - Standard forex volatility characteristics
+🥇 PRECIOUS METAL: XAUUSD (Gold vs US Dollar)
+   - Standard 100 oz contract sizes
+   - 0.01 tick values (2 decimal places)
+   - 20:1 leverage with 5% margin
 
-🤖 CONFIGURATION: Instrument settings optimized for AUDUSD
-   - Tick values: 0.0001 (standard forex pip)
-   - Lot sizes: 100,000 AUD (standard forex contract)
-   - Margin requirements: Standard forex margin
+🤖 CONFIGURATION: Instrument settings optimized for XAUUSD
+   - Tick values: 0.01
+   - Lot sizes: 100,000 USD
+   - Margin requirements: 3.33%
 
 RISK MANAGEMENT
 ---------------
@@ -205,8 +195,8 @@ import backtrader as bt
 # ⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡⚡
 
 # === INSTRUMENT SELECTION ===
-# Australian Dollar version - AUDUSD only
-DATA_FILENAME = 'AUDUSD_5m_5Yea.csv'     # 🇦🇺 Australian Dollar vs US Dollar - Forex
+# Gold version - XAUUSD only
+DATA_FILENAME = 'XAUUSD_5m_5Yea.csv'     # 🥇 Gold vs US Dollar - Precious Metal
 
 # === BACKTEST SETTINGS ===
 FROMDATE = '2020-07-10'               # Start date for backtesting (YYYY-MM-DD)
@@ -216,9 +206,16 @@ QUICK_TEST = False                    # True: Reduce to last 10 days for quick t
 LIMIT_BARS = 0                        # >0: Stop after N bars processed (0 = no limit)
 ENABLE_PLOT = True                    # Show final chart with trades (requires matplotlib)
 
+# === TRADING MODE ===
+# NORMAL     : Conservative – London Open + NY AM kill zones only, 4H trend must be
+#              BULLISH or NEUTRAL, strict ATR range, single position.
+# AGGRESSIVE : All 5 kill zones active, up to 3 layered positions, softer ATR bounds,
+#              automatic breakeven and de-risk logic.
+TRADING_MODE = 'NORMAL'               # 'NORMAL' or 'AGGRESSIVE'
+
 # === FOREX CONFIGURATION ===
 ENABLE_FOREX_CALC = True              # Enable advanced forex position calculations
-FOREX_INSTRUMENT = 'AUDUSD'           # Fixed to AUDUSD (Australian Dollar vs USD)
+FOREX_INSTRUMENT = 'XAUUSD'           # Fixed to XAUUSD (Gold vs USD)
 TEST_FOREX_MODE = False               # True: Quick 30-day test with forex calculations
 
 # === TRADING DIRECTION ===
@@ -241,16 +238,16 @@ AUTO_PLOT_SINGLE_MODE = False         # Automatically plot in single mode (LONG-
 
 # === LONG ATR VOLATILITY FILTER ===
 LONG_USE_ATR_FILTER = True                 # Enable ATR-based volatility filtering for long entries
-LONG_ATR_MIN_THRESHOLD = 0.00015         
-LONG_ATR_MAX_THRESHOLD = 0.0005             # 🇦🇺 AUDUSD: Adjusted for Australian Dollar forex volatility characteristics
+LONG_ATR_MIN_THRESHOLD = 0.0          
+LONG_ATR_MAX_THRESHOLD = 2.00        
 # ATR INCREMENT FILTER (DISABLED - Inferior Performance)
-LONG_USE_ATR_INCREMENT_FILTER = False       # 🎯 OPTIMIZED: Increments showed inferior performance
-LONG_ATR_INCREMENT_MIN_THRESHOLD = 0.000001     # 🇦🇺 AUDUSD: Adjusted for Australian Dollar forex volatility
-LONG_ATR_INCREMENT_MAX_THRESHOLD = 0.0111     # 🇦🇺 AUDUSD: Adjusted for Australian Dollar forex volatility
+LONG_USE_ATR_INCREMENT_FILTER = True       # 🎯 OPTIMIZED: Increments showed inferior performance
+LONG_ATR_INCREMENT_MIN_THRESHOLD = 0.2       # EXPANDED: Much wider range for more entries
+LONG_ATR_INCREMENT_MAX_THRESHOLD = 1.600000     # EXPANDED: Much wider range for more entries
 # ATR DECREMENT FILTER (OPTIMIZED - Only very low changes)
 LONG_USE_ATR_DECREMENT_FILTER = False        # 🎯 OPTIMIZED: Decrements with better performance
-LONG_ATR_DECREMENT_MIN_THRESHOLD = -0.004 # 🇦🇺 AUDUSD: Adjusted for Australian Dollar forex volatility
-LONG_ATR_DECREMENT_MAX_THRESHOLD = 0 # 🇦🇺 AUDUSD: Adjusted for Australian Dollar forex volatility
+LONG_ATR_DECREMENT_MIN_THRESHOLD = -0.00002 # 🎯 EXPANDED: Much wider range for more entries
+LONG_ATR_DECREMENT_MAX_THRESHOLD = -0.00001 # 🎯 EXPANDED: Much wider range for more entries
 
 # === SHORT ATR VOLATILITY FILTER ===
 SHORT_USE_ATR_FILTER = True                 # Enable ATR-based volatility filtering for short entries  
@@ -267,32 +264,32 @@ SHORT_ATR_DECREMENT_MAX_THRESHOLD = -0.000020 # 🎯 EXPANDED: Much wider range 
 
 # === LONG ENTRY FILTERS ===
 LONG_USE_EMA_ORDER_CONDITION = False        # Require confirm_EMA > all other EMAs for long entries
-LONG_USE_PRICE_FILTER_EMA = True           # Require close > filter_EMA (trend alignment) for long entries
-LONG_USE_CANDLE_DIRECTION_FILTER = True     # Require previous candle bullish (close[1] > open[1]) for long entries
-LONG_USE_ANGLE_FILTER = True                # Require minimum EMA slope angle for long entries
-LONG_MIN_ANGLE = 0.0                       # EXPANDED: Much wider angle range for more entries
-LONG_MAX_ANGLE = 30.0                       # EXPANDED: Much wider angle range for more entries
-LONG_ANGLE_SCALE_FACTOR = 10.0              # 🎯 AUDUSD: Scale factor for Australian Dollar forex price range
+LONG_USE_PRICE_FILTER_EMA = True            # Require close > filter_EMA (trend alignment) for long entries
+LONG_USE_CANDLE_DIRECTION_FILTER = False     # Require previous candle bullish (close[1] > open[1]) for long entries
+LONG_USE_ANGLE_FILTER = False                # Require minimum EMA slope angle for long entries
+LONG_MIN_ANGLE = 35.0                       # EXPANDED: Much wider angle range for more entries
+LONG_MAX_ANGLE = 95.0                       # EXPANDED: Much wider angle range for more entries
+LONG_ANGLE_SCALE_FACTOR = 10.0              # 🥇 XAUUSD: Reduced scale factor for Gold price range (EURUSD uses 10000.0)
 
 # === LONG EMA POSITION FILTER ===
 LONG_USE_EMA_BELOW_PRICE_FILTER = False     # NEW: Require fast, medium & slow EMAs below price for long entries
 
 # === SHORT ENTRY FILTERS ===
-SHORT_USE_EMA_ORDER_CONDITION = False      # Require confirm_EMA < all other EMAs for short entries
+SHORT_USE_EMA_ORDER_CONDITION = True      # Require confirm_EMA < all other EMAs for short entries
 SHORT_USE_PRICE_FILTER_EMA = True           # Require close < filter_EMA (trend alignment) for short entries  
 SHORT_USE_CANDLE_DIRECTION_FILTER = True    # Require previous candle bearish (close[1] < open[1]) for short entries
 SHORT_USE_ANGLE_FILTER = True               # Require minimum EMA slope angle for short entries
 SHORT_MIN_ANGLE = -90.0                     # EXPANDED: Much wider angle range for more entries
 SHORT_MAX_ANGLE = -20.0                     # EXPANDED: Much wider angle range for more entries
-SHORT_ANGLE_SCALE_FACTOR = 10.0             # 🇦🇺 AUDUSD: Scale factor for Australian Dollar forex price range
+SHORT_ANGLE_SCALE_FACTOR = 10.0             # 🥇 XAUUSD: Reduced scale factor for Gold price range (EURUSD uses 10000.0)
 
 # === SHORT EMA POSITION FILTER ===
 SHORT_USE_EMA_ABOVE_PRICE_FILTER = False    # NEW: Require fast, medium & slow EMAs above price for short entries
 
 # === LONG PULLBACK ENTRY SYSTEM ===
 LONG_USE_PULLBACK_ENTRY = True             # Enable 3-phase pullback entry system for long entries
-LONG_PULLBACK_MAX_CANDLES = 2              # Max red candles in pullback for long entries (1-3 recommended)
-LONG_ENTRY_WINDOW_PERIODS = 1             # Bars to wait for breakout after pullback (long entries)
+LONG_PULLBACK_MAX_CANDLES = 3              # Max red candles in pullback for long entries (1-3 recommended)
+LONG_ENTRY_WINDOW_PERIODS = 1              # Bars to wait for breakout after pullback (long entries)
 
 # === SHORT PULLBACK ENTRY SYSTEM ===
 SHORT_USE_PULLBACK_ENTRY = True            # Enable 3-phase pullback entry system for short entries
@@ -306,7 +303,7 @@ SHORT_ENTRY_WINDOW_PERIODS = 7            # Bars to wait for breakdown after pul
 # 🔧 USE_WINDOW_TIME_OFFSET: Enable/disable time delay for window opening
 USE_WINDOW_TIME_OFFSET = False              # NEW: Enable/disable the time delay for window opening
 # 🔧 WINDOW_OFFSET_MULTIPLIER: Controls delay between pullback and window opening (only if USE_WINDOW_TIME_OFFSET=True)
-WINDOW_OFFSET_MULTIPLIER = 0.5             # Window delay multiplier (0.5=fast, 1.0=standard, 2.0=conservative)
+WINDOW_OFFSET_MULTIPLIER = 1.0             # Window delay multiplier (0.5=fast, 1.0=standard, 2.0=conservative)
                                           # Formula: window_start = current_bar + (pullback_count × this_value)
                                           # 🔬 EXPERIMENT: Try 0.5 for aggressive, 1.5 for conservative entries
 # 🔧 WINDOW_PRICE_OFFSET_MULTIPLIER: Controls the price expansion of the two-sided channel
@@ -315,21 +312,21 @@ WINDOW_PRICE_OFFSET_MULTIPLIER = 0.001      # NEW: Price expansion multiplier (0
 # ===============================================================
 
 # === TIME RANGE FILTER ===
-USE_TIME_RANGE_FILTER = True              # ENABLED: Time filter for complete analysis
-ENTRY_START_HOUR = 23                      # Start hour for entry window (UTC)
+USE_TIME_RANGE_FILTER = False              # ENABLED: Time filter for complete analysis
+ENTRY_START_HOUR = 00                     # Start hour for entry window (UTC)
 ENTRY_START_MINUTE = 0                     # Start minute for entry window (UTC)
-ENTRY_END_HOUR = 16                        # End hour for entry window (UTC)
-ENTRY_END_MINUTE = 0                      # End minute for entry window (UTC)
+ENTRY_END_HOUR = 8                        # End hour for entry window (UTC)
+ENTRY_END_MINUTE = 0                     # End minute for entry window (UTC)
 
 
-class SunriseOgle(bt.Strategy):
+class KipsStrategy(bt.Strategy):
     params = dict(
         # === TECHNICAL INDICATORS ===
-        ema_fast_length=18,               # Fast EMA period for trend detection #14
-        ema_medium_length=18,             # Medium EMA period for trend confirmation #18
-        ema_slow_length=24,               # Slow EMA period for trend strength # 24
+        ema_fast_length=14,               # Fast EMA period for trend detection #14
+        ema_medium_length=14,             # Medium EMA period for trend confirmation #18
+        ema_slow_length=24,                # Slow EMA period for trend strength # 24
         ema_confirm_length=1,             # Confirmation EMA (usually 1 for immediate response)
-        ema_filter_price_length=40,      # Price filter EMA to avoid counter-trend trades #50
+        ema_filter_price_length=100,       # Price filter EMA to avoid counter-trend trades #50
         ema_exit_length=25,               # Exit EMA for crossover exit strategy
         
         # === ATR RISK MANAGEMENT ===
@@ -364,8 +361,8 @@ class SunriseOgle(bt.Strategy):
         long_max_angle=LONG_MAX_ANGLE,                   # Maximum angle in degrees for EMA slope (long entries)
         long_angle_scale_factor=LONG_ANGLE_SCALE_FACTOR,       # Scaling factor for angle calculation sensitivity (long entries)
         long_use_ema_below_price_filter=LONG_USE_EMA_BELOW_PRICE_FILTER,  # NEW: Require fast, medium & slow EMAs below price for long entries
-        long_atr_sl_multiplier=4.4,                            # Stop Loss multiplier for LONG trades
-        long_atr_tp_multiplier=6.8,                           # Take Profit multiplier for LONG trades
+        long_atr_sl_multiplier=4.5,                            # Stop Loss multiplier for LONG trades
+        long_atr_tp_multiplier=6.5,                           # Take Profit multiplier for LONG trades
         
         # === LONG PULLBACK ENTRY SYSTEM ===
         long_use_pullback_entry=LONG_USE_PULLBACK_ENTRY,          # Enable 3-phase pullback entry system for long entries
@@ -421,10 +418,10 @@ class SunriseOgle(bt.Strategy):
         
         # === FOREX SETTINGS ===
         use_forex_position_calc=True,     # Enable advanced forex position calculations
-        forex_instrument='AUDUSD',        # Fixed to AUDUSD
+        forex_instrument='XAUUSD',        # Fixed to XAUUSD
         forex_base_currency='XAU',        # Base currency: XAU
         forex_quote_currency='USD',       # Quote currency: USD
-        forex_pip_value=0.0001,           # Pip value for AUDUSD
+        forex_pip_value=0.0001,           # Pip value for EURUSD
         forex_pip_decimal_places=4,       # Price decimal places for EURUSD
         forex_lot_size=100000,            # Lot size for EURUSD (100K EUR)
         forex_micro_lot_size=0.01,        # Minimum lot increment (0.01 standard lots)
@@ -750,13 +747,13 @@ class SunriseOgle(bt.Strategy):
         account_equity = self.broker.get_value()
         risk_amount = account_equity * self.p.risk_percent
         
-        # Calculate value per pip for AUDUSD
-        # For AUDUSD: 1 standard lot (100,000 AUD) = $10 per pip (0.0001 price move)
+        # Calculate value per tick for XAUUSD
+        # For XAUUSD: 1 standard lot (100 oz) = $1 per tick (0.01 price move)
         
         if self.p.forex_quote_currency == 'USD':
             value_per_pip_per_lot = (self.p.forex_pip_value * self.p.forex_lot_size)
         else:
-            # For AUDUSD, direct USD pricing
+            # For XAUUSD, direct USD pricing
             # Simplified: use $1 per tick for standard lot (100 oz)
             value_per_pip_per_lot = 1.0
         
@@ -819,7 +816,7 @@ class SunriseOgle(bt.Strategy):
             risk_reward = 0
             
         # Calculate monetary values for XAUUSD
-        # AUDUSD: $10 per pip for standard lot (100,000 AUD)
+        # Gold: $1 per tick for standard lot (100 oz)
         pip_value_per_lot = 1.0
             
         risk_amount = pip_risk * lot_size * pip_value_per_lot
@@ -832,7 +829,7 @@ class SunriseOgle(bt.Strategy):
         # Format prices based on decimal places
         price_format = f"{{:.{self.p.forex_pip_decimal_places}f}}"
         
-        return (f"\n--- AUDUSD TRADE DETAILS ({self.p.forex_instrument}) ---\n"
+        return (f"\n--- GOLD TRADE DETAILS ({self.p.forex_instrument}) ---\n"
                 f"Position Size: {lot_size:.2f} lots ({units_desc})\n"
                 f"Position Value: ${position_value:,.2f}\n"
                 f"Margin Required: ${margin_required:,.2f} ({self.p.forex_margin_required}%)\n"
@@ -852,23 +849,23 @@ class SunriseOgle(bt.Strategy):
             
         # Check if data filename matches XAUUSD
         data_filename = getattr(self, '_data_filename', '')
-        if 'AUDUSD' not in data_filename.upper():
-            print(f"WARNING: Data file is {data_filename} but strategy is configured for AUDUSD")
+        if 'XAUUSD' not in data_filename.upper():
+            print(f"WARNING: Data file is {data_filename} but strategy is configured for XAUUSD")
             
-        # Validate price ranges for AUDUSD (Australian Dollar)
+        # Validate price ranges for XAUUSD (Gold)
         if hasattr(self.data, 'close') and len(self.data.close) > 0:
             current_price = float(self.data.close[0])
-            if current_price < 0.50 or current_price > 1.50:
-                print(f"WARNING: Price {current_price} seems unusual for AUDUSD (expected range: 0.50-1.50)")
+            if current_price < 1000 or current_price > 3000:
+                print(f"WARNING: Price {current_price} seems unusual for XAUUSD (expected range: 1000-3000)")
                 
-        # Check tick value consistency for AUDUSD
-        if self.p.forex_pip_value != 0.0001:
-            print(f"INFO: AUDUSD typically uses pip value of 0.0001, current setting: {self.p.forex_pip_value}")
+        # Check tick value consistency for XAUUSD
+        if self.p.forex_pip_value != 0.01:
+            print(f"INFO: XAUUSD typically uses tick value of 0.01, current setting: {self.p.forex_pip_value}")
             
         return True
     
     def _get_forex_instrument_config(self, instrument_name=None):
-        """Get configuration for AUDUSD instrument.
+        """Get configuration for XAUUSD instrument.
         
         Args:
             instrument_name: Override instrument name (defaults to XAUUSD)
@@ -881,15 +878,15 @@ class SunriseOgle(bt.Strategy):
             data_filename = getattr(self, '_data_filename', '').upper()
             
             # Try to detect instrument from filename
-            if 'AUDUSD' in data_filename:
-                instrument_name = 'AUDUSD'
+            if 'XAUUSD' in data_filename:
+                instrument_name = 'XAUUSD'
             else:
-                instrument_name = 'AUDUSD'  # Default to AUDUSD for this forex version
+                instrument_name = 'XAUUSD'  # Default to XAUUSD for this gold version
         
         # XAUUSD configuration only
         config = {
-            'AUDUSD': {  # Australian Dollar vs US Dollar
-                'base_currency': 'AUD',
+            'XAUUSD': {  # Gold vs US Dollar
+                'base_currency': 'XAU',
                 'quote_currency': 'USD',
                 'pip_value': 0.01,           # 1 tick = $0.01
                 'pip_decimal_places': 2,
@@ -899,15 +896,15 @@ class SunriseOgle(bt.Strategy):
             }
         }
         
-        return config.get(instrument_name, config['AUDUSD'])
+        return config.get(instrument_name, config['XAUUSD'])
     
     def _apply_forex_config(self):
         """Apply forex configuration for USDCHF."""
         if not self.p.use_forex_position_calc:
             return
             
-        # Get configuration for AUDUSD
-        config = self._get_forex_instrument_config('AUDUSD')
+        # Get configuration for XAUUSD
+        config = self._get_forex_instrument_config('XAUUSD')
         
         # Update parameters with XAUUSD configuration
         self.p.forex_base_currency = config['base_currency']
@@ -927,7 +924,7 @@ class SunriseOgle(bt.Strategy):
         self.p.forex_instrument = 'XAUUSD'
                 
         # Log forex configuration
-        print(f"CONFIGURED: AUDUSD from filename: {data_filename}")
+        print(f"CONFIGURED: XAUUSD from filename: {data_filename}")
         print(f"Forex Config: {self.p.forex_base_currency}/{self.p.forex_quote_currency}")
         print(f"Tick Value: {self.p.forex_pip_value} | Lot Size: {self.p.forex_lot_size:,} oz | Margin: {self.p.forex_margin_required}%")
 
@@ -2511,25 +2508,6 @@ class SunriseOgle(bt.Strategy):
                     print(f"❌ ANGLE FILTER REJECTED: LONG entry blocked - angle {current_angle:.2f}° outside range [{self.p.long_min_angle:.1f}°, {self.p.long_max_angle:.1f}°]")
                 return False
 
-        # 6. ATR Increment/Decrement filters
-        atr_increment = getattr(self, 'entry_atr_increment', None)
-        if atr_increment is not None:
-            # Check ATR increment filter (positive changes)
-            if self.p.long_use_atr_increment_filter and atr_increment >= 0:
-                atr_increment_ok = self.p.long_atr_increment_min_threshold <= atr_increment <= self.p.long_atr_increment_max_threshold
-                if not atr_increment_ok:
-                    if self.p.verbose_debug:
-                        print(f"❌ ATR INCREMENT FILTER REJECTED: LONG entry blocked - increment {atr_increment:.6f} outside range [{self.p.long_atr_increment_min_threshold:.6f}, {self.p.long_atr_increment_max_threshold:.6f}]")
-                    return False
-            
-            # Check ATR decrement filter (negative changes)
-            if self.p.long_use_atr_decrement_filter and atr_increment < 0:
-                atr_decrement_ok = self.p.long_atr_decrement_min_threshold <= atr_increment <= self.p.long_atr_decrement_max_threshold
-                if not atr_decrement_ok:
-                    if self.p.verbose_debug:
-                        print(f"❌ ATR DECREMENT FILTER REJECTED: LONG entry blocked - decrement {atr_increment:.6f} outside range [{self.p.long_atr_decrement_min_threshold:.6f}, {self.p.long_atr_decrement_max_threshold:.6f}]")
-                    return False
-
         return True
     
     def _basic_short_entry_conditions(self):
@@ -2598,25 +2576,6 @@ class SunriseOgle(bt.Strategy):
             angle_ok = self.p.short_min_angle <= current_angle <= self.p.short_max_angle
             if not angle_ok:
                 return False
-
-        # 6. ATR Increment/Decrement filters
-        atr_increment = getattr(self, 'entry_atr_increment', None)
-        if atr_increment is not None:
-            # Check ATR increment filter (positive changes)
-            if self.p.short_use_atr_increment_filter and atr_increment >= 0:
-                atr_increment_ok = self.p.short_atr_increment_min_threshold <= atr_increment <= self.p.short_atr_increment_max_threshold
-                if not atr_increment_ok:
-                    if self.p.verbose_debug:
-                        print(f"❌ ATR INCREMENT FILTER REJECTED: SHORT entry blocked - increment {atr_increment:.6f} outside range [{self.p.short_atr_increment_min_threshold:.6f}, {self.p.short_atr_increment_max_threshold:.6f}]")
-                    return False
-            
-            # Check ATR decrement filter (negative changes)
-            if self.p.short_use_atr_decrement_filter and atr_increment < 0:
-                atr_decrement_ok = self.p.short_atr_decrement_min_threshold <= atr_increment <= self.p.short_atr_decrement_max_threshold
-                if not atr_decrement_ok:
-                    if self.p.verbose_debug:
-                        print(f"❌ ATR DECREMENT FILTER REJECTED: SHORT entry blocked - decrement {atr_increment:.6f} outside range [{self.p.short_atr_decrement_min_threshold:.6f}, {self.p.short_atr_decrement_max_threshold:.6f}]")
-                    return False
 
         return True
     
@@ -2874,7 +2833,7 @@ class SunriseOgle(bt.Strategy):
                 self.limit_order = None
         
         # Enhanced summary calculation with debug stats
-        print("=== SUNRISE OGLE SUMMARY ===")
+        print("=== KIPS STRATEGY SUMMARY ===")
         
         # Calculate metrics
         wr = (self.wins / self.trades * 100.0) if self.trades else 0.0
@@ -2984,10 +2943,10 @@ if __name__ == '__main__':
     cerebro.adddata(data)
     cerebro.broker.setcash(STARTING_CASH)
     cerebro.broker.setcommission(leverage=30.0)
-    cerebro.addstrategy(SunriseOgle, **STRAT_KWARGS)
-    try: cerebro.addobserver(bt.observers.BuySell, barplot=False, plotdist=SunriseOgle.params.buy_sell_plotdist)
+    cerebro.addstrategy(KipsStrategy, **STRAT_KWARGS)
+    try: cerebro.addobserver(bt.observers.BuySell, barplot=False, plotdist=KipsStrategy.params.buy_sell_plotdist)
     except Exception: pass
-    if SunriseOgle.params.plot_sltp_lines:
+    if KipsStrategy.params.plot_sltp_lines:
         try: cerebro.addobserver(SLTPObserver)
         except Exception: pass
     try: cerebro.addobserver(bt.observers.Value)
@@ -2995,17 +2954,17 @@ if __name__ == '__main__':
 
     if LIMIT_BARS > 0:
         # Monkey-patch next() to stop early after LIMIT_BARS bars for quick experimentation.
-        orig_next = SunriseOgle.next
+        orig_next = KipsStrategy.next
         def limited_next(self):
             if len(self.data) >= LIMIT_BARS:
                 self.env.runstop(); return
             orig_next(self)
-        SunriseOgle.next = limited_next
+        KipsStrategy.next = limited_next
 
-    print(f"=== SUNRISE OGLE === (from {FROMDATE} to {TODATE})")
+    print(f"=== KIPS STRATEGY === (from {FROMDATE} to {TODATE})")
     if ENABLE_FOREX_CALC:
         print(f">> FOREX MODE ENABLED - Data: {DATA_FILENAME}")
-        print(f">> Instrument: AUDUSD (AUD/USD)")
+        print(f">> Instrument: XAUUSD (XAU/USD)")
     else:
         print(f" STANDARD MODE - Data: {DATA_FILENAME}")
 
@@ -3027,11 +2986,11 @@ if __name__ == '__main__':
             'short_enabled': False,
             'print_signals': True
         })
-        cerebro_long.addstrategy(SunriseOgle, **long_kwargs)
+        cerebro_long.addstrategy(KipsStrategy, **long_kwargs)
         
-        try: cerebro_long.addobserver(bt.observers.BuySell, barplot=False, plotdist=SunriseOgle.params.buy_sell_plotdist)
+        try: cerebro_long.addobserver(bt.observers.BuySell, barplot=False, plotdist=KipsStrategy.params.buy_sell_plotdist)
         except Exception: pass
-        if SunriseOgle.params.plot_sltp_lines:
+        if KipsStrategy.params.plot_sltp_lines:
             try: cerebro_long.addobserver(SLTPObserver)
             except Exception: pass
         try: cerebro_long.addobserver(bt.observers.Value)
@@ -3055,11 +3014,11 @@ if __name__ == '__main__':
             'short_enabled': True,
             'print_signals': True
         })
-        cerebro_short.addstrategy(SunriseOgle, **short_kwargs)
+        cerebro_short.addstrategy(KipsStrategy, **short_kwargs)
         
-        try: cerebro_short.addobserver(bt.observers.BuySell, barplot=False, plotdist=SunriseOgle.params.buy_sell_plotdist)
+        try: cerebro_short.addobserver(bt.observers.BuySell, barplot=False, plotdist=KipsStrategy.params.buy_sell_plotdist)
         except Exception: pass
-        if SunriseOgle.params.plot_sltp_lines:
+        if KipsStrategy.params.plot_sltp_lines:
             try: cerebro_short.addobserver(SLTPObserver)
             except Exception: pass
         try: cerebro_short.addobserver(bt.observers.Value)
@@ -3268,10 +3227,10 @@ if __name__ == '__main__':
         cerebro.adddata(data)
         cerebro.broker.setcash(STARTING_CASH)
         cerebro.broker.setcommission(leverage=30.0)
-        cerebro.addstrategy(SunriseOgle, **STRAT_KWARGS)
-        try: cerebro.addobserver(bt.observers.BuySell, barplot=False, plotdist=SunriseOgle.params.buy_sell_plotdist)
+        cerebro.addstrategy(KipsStrategy, **STRAT_KWARGS)
+        try: cerebro.addobserver(bt.observers.BuySell, barplot=False, plotdist=KipsStrategy.params.buy_sell_plotdist)
         except Exception: pass
-        if SunriseOgle.params.plot_sltp_lines:
+        if KipsStrategy.params.plot_sltp_lines:
             try: cerebro.addobserver(SLTPObserver)
             except Exception: pass
         try: cerebro.addobserver(bt.observers.Value)
@@ -3279,12 +3238,12 @@ if __name__ == '__main__':
 
         if LIMIT_BARS > 0:
             # Monkey-patch next() to stop early after LIMIT_BARS bars for quick experimentation.
-            orig_next = SunriseOgle.next
+            orig_next = KipsStrategy.next
             def limited_next(self):
                 if len(self.data) >= LIMIT_BARS:
                     self.env.runstop(); return
                 orig_next(self)
-            SunriseOgle.next = limited_next
+            KipsStrategy.next = limited_next
 
         results = cerebro.run()
         final_value = cerebro.broker.getvalue()

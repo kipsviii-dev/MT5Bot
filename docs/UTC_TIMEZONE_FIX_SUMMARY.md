@@ -32,10 +32,10 @@
 ## ⏳ PENDING - Strategy File Changes
 
 The following function needs to be added to **4 strategy files** (assets with time filter enabled):
-- `strategies/sunrise_ogle_eurusd.py`
-- `strategies/sunrise_ogle_audusd.py`
-- `strategies/sunrise_ogle_xagusd.py`
-- `strategies/sunrise_ogle_usdchf.py`
+- `strategies/kips_strategy_eurusd.py`
+- `strategies/kips_strategy_audusd.py`
+- `strategies/kips_strategy_xagusd.py`
+- `strategies/kips_strategy_usdchf.py`
 
 ### Function to Add:
 

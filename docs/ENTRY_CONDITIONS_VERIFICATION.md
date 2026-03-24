@@ -26,7 +26,7 @@
 
 #### Original Strategy (Backtrader)
 ```python
-# File: sunrise_ogle_eurusd.py, Lines 187-198
+# File: kips_strategy_eurusd.py, Lines 187-198
 LONG_USE_ATR_FILTER = True
 LONG_ATR_MIN_THRESHOLD = 0.000150
 LONG_ATR_MAX_THRESHOLD = 0.000600
@@ -78,7 +78,7 @@ def _validate_atr_filter(self, symbol, df, direction='LONG'):
 
 #### Original Strategy
 ```python
-# File: sunrise_ogle_eurusd.py, Lines 206-208
+# File: kips_strategy_eurusd.py, Lines 206-208
 LONG_USE_ANGLE_FILTER = False
 LONG_MIN_ANGLE = 35.0
 LONG_MAX_ANGLE = 85.0
@@ -131,7 +131,7 @@ def _validate_angle_filter(self, symbol, df, direction='LONG'):
 
 #### Original Strategy
 ```python
-# File: sunrise_ogle_eurusd.py, Lines 203
+# File: kips_strategy_eurusd.py, Lines 203
 LONG_USE_PRICE_FILTER_EMA = True
 # Uses ema_filter_price_length = 70
 ```
@@ -180,7 +180,7 @@ def _validate_price_filter(self, symbol, df, direction='LONG'):
 
 #### Original Strategy
 ```python
-# File: sunrise_ogle_eurusd.py, Lines 204
+# File: kips_strategy_eurusd.py, Lines 204
 LONG_USE_CANDLE_DIRECTION_FILTER = False
 # When enabled: Requires previous candle bullish (close[1] > open[1])
 ```
@@ -223,7 +223,7 @@ def _validate_candle_direction(self, symbol, df, direction='LONG'):
 
 #### Original Strategy
 ```python
-# File: sunrise_ogle_eurusd.py, Lines 202
+# File: kips_strategy_eurusd.py, Lines 202
 LONG_USE_EMA_ORDER_CONDITION = False
 # When enabled: Requires confirm_EMA > fast_EMA > medium_EMA > slow_EMA
 ```
@@ -263,7 +263,7 @@ def _validate_ema_ordering(self, symbol, ema_confirm, ema_fast, ema_medium, ema_
 
 #### Original Strategy
 ```python
-# File: sunrise_ogle_eurusd.py, Lines 222-227
+# File: kips_strategy_eurusd.py, Lines 222-227
 USE_TIME_RANGE_FILTER = False
 ENTRY_START_HOUR = 21
 ENTRY_START_MINUTE = 0
@@ -389,7 +389,7 @@ def detect_ema_crossovers(self, symbol, indicators, df):
 
 ### Original Strategy
 ```python
-# File: sunrise_ogle_eurusd.py, Lines 231-237
+# File: kips_strategy_eurusd.py, Lines 231-237
 ema_fast_length=18        # Fast EMA period
 ema_medium_length=18      # Medium EMA period
 ema_slow_length=24        # Slow EMA period
@@ -452,7 +452,7 @@ def calculate_indicators(self, df, symbol):
 
 ### Original Strategy
 ```python
-# File: sunrise_ogle_eurusd.py, Lines 210-222
+# File: kips_strategy_eurusd.py, Lines 210-222
 LONG_USE_PULLBACK_ENTRY = False  # Currently disabled for testing
 LONG_PULLBACK_MAX_CANDLES = 2    # Max red candles for LONG
 LONG_ENTRY_WINDOW_PERIODS = 1    # Bars for breakout window
@@ -577,7 +577,7 @@ Entry logic is **pristine** and matches original Backtrader strategy with 100% f
 
 ## 📚 Reference Documents
 
-- **Original Strategy:** `strategies/sunrise_ogle_eurusd.py` (and other symbols)
+- **Original Strategy:** `strategies/kips_strategy_eurusd.py` (and other symbols)
 - **MT5 Implementation:** `advanced_mt5_monitor_gui.py`
 - **Position Sizing Fix:** `POSITION_SIZING_FIX_FINAL.md`
 - **Comprehensive Verification:** `COMPREHENSIVE_STRATEGY_VERIFICATION.md`

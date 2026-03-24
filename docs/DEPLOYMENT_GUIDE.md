@@ -163,7 +163,7 @@ start /B dist\MT5_Trading_Bot.exe
 
 2. **Create Basic Task:**
    - Name: `MT5 Trading Bot`
-   - Description: `Automated MT5 Trading Bot - Sunrise Ogle Strategy`
+   - Description: `Automated MT5 Trading Bot - KIPS STRATEGY Strategy`
 
 3. **Trigger:** At log on (or daily at specific time)
 

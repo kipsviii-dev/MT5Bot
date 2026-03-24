@@ -247,7 +247,7 @@ Most retail brokers (especially European) only provide local time.
 
 2. **Document timezone in strategy files**:
    ```python
-   # Add to all strategy files (sunrise_ogle_*.py):
+   # Add to all strategy files (kips_strategy_*.py):
    # ═══════════════════════════════════════════════════════════════════
    # TIMEZONE CONFIGURATION
    # ═══════════════════════════════════════════════════════════════════

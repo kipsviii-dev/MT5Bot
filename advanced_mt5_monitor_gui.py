@@ -1,4 +1,4 @@
-Ôªø#!/usr/bin/env python3
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Advanced MT5 Trading Monitor GUI with Strategy Phase Tracking
@@ -77,42 +77,165 @@ if not sunrise_signal_adapter:
     sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
     sunrise_signal_adapter = dynamic_import("sunrise_signal_adapter")
 
-# ==========
-# RAY DALIO ALL-WEATHER PORTFOLIO ALLOCATION SYSTEM
-# ==========
-# 8-asset portfolio based on economic scenario hedging (v1.2.0):
-# - Inflation hedge: XAUUSD (gold), XAGUSD (silver)
-# - Deflation hedge: USDCHF (safe haven)
-# - Balanced forex: GBPUSD, EURUSD
-# - Commodity currency: AUDUSD
-# - JPY exposure: EURJPY, USDJPY (carry trade + BOJ sensitivity)
+# -------------------------------------------------------------------------------
+# RAY DALIO ALL-WEATHER PORTFOLIO ALLOCATION SYSTEM  (v2.1 - Dynamic DD Scaling)
+# -------------------------------------------------------------------------------
 #
-# Position sizing formula: Risk = DEFAULT_RISK_PERCENT x allocated_capital
-# Example with $50,000 balance and 1% risk per allocation:
-#   XAUUSD: $50,000 x 15% = $7,500 -> $75.00 risk per trade
-#   USDCHF: $50,000 x 15% = $7,500 -> $75.00 risk per trade
-#   GBPUSD: $50,000 x 12% = $6,000 -> $60.00 risk per trade
-#   EURUSD: $50,000 x 12% = $6,000 -> $60.00 risk per trade
-#   XAGUSD: $50,000 x 12% = $6,000 -> $60.00 risk per trade
-#   EURJPY: $50,000 x 12% = $6,000 -> $60.00 risk per trade
-#   USDJPY: $50,000 x 12% = $6,000 -> $60.00 risk per trade
-#   AUDUSD: $50,000 x 10% = $5,000 -> $50.00 risk per trade
-# Total: 100% allocation across 8 assets
-# ==========
+# ECONOMIC SCENARIO HEDGING (8-asset portfolio):
+#   ï Inflation hedges  ? XAUUSD (gold), XAGUSD (silver)
+#   ï Deflation hedge   ? USDCHF (safe haven / CHF flight-to-quality)
+#   ï Balanced forex    ? GBPUSD, EURUSD (liquid, tight spreads)
+#   ï Commodity FX      ? AUDUSD (resource-driven economy)
+#   ï JPY pairs         ? EURJPY, USDJPY (carry trade + BOJ sensitivity)
+#
+# -- TRADING MODES --------------------------------------------------------------
+#   NORMAL     ñ Capital preservation focus.
+#                Per-trade risk: 1% of allocated capital.
+#                DD cap: starts at 40% (small acct), shrinks as balance grows.
+#                Layers: 1 concurrent position per symbol.
+#
+#   AGGRESSIVE ñ Maximum-growth focus (small-account bootstrapping).
+#                Per-trade risk: 3% of allocated capital.
+#                DD cap: starts at 60% (small acct), shrinks as balance grows.
+#                Layers: up to 3 concurrent positions per symbol.
+#
+# -- DYNAMIC DRAWDOWN CAP -------------------------------------------------------
+#   The max drawdown % is NOT fixed. It scales DOWN as the account grows:
+#
+#   Logic:
+#     ï Small account (= START_BALANCE): use the HIGH cap (40% / 60%)
+#       ? We need room to grow, tighter DD would be impractical on $100
+#     ï Large account (= FLOOR_BALANCE): use the LOW floor cap (10% / 20%)
+#       ? We have meaningful capital now; protect it aggressively
+#     ï Between the two: linearly interpolate between HIGH and LOW cap
+#
+#   Example ñ NORMAL mode:
+#     $100  balance ? DD cap = 40%  (high risk tolerance, building capital)
+#     $500  balance ? DD cap = 28%  (interpolated)
+#     $1000 balance ? DD cap = 18%  (interpolated)
+#     $2000 balance ? DD cap = 10%  (floor reached, full protection)
+#
+#   Example ñ AGGRESSIVE mode:
+#     $100  balance ? DD cap = 60%  (max growth phase)
+#     $500  balance ? DD cap = 43%  (interpolated)
+#     $1000 balance ? DD cap = 30%  (interpolated)
+#     $2000 balance ? DD cap = 20%  (floor reached, still aggressive but safer)
+#
+# -- SMALL-BALANCE GUARD --------------------------------------------------------
+#   When balance < SMALL_BALANCE_THRESHOLD ($500) the risk % is automatically
+#   scaled up so the calculated risk_amount is always = MIN_RISK_AMOUNT_USD.
+# -------------------------------------------------------------------------------
 
+# -- Trading mode ----------------------------------------------------------------
+TRADING_MODE_NORMAL     = "NORMAL"
+TRADING_MODE_AGGRESSIVE = "AGGRESSIVE"
+
+# Active trading mode ñ change this constant to switch modes globally.
+ACTIVE_TRADING_MODE = TRADING_MODE_NORMAL   # ? change to AGGRESSIVE for max-growth
+
+# -- Asset allocations (sum = 1.00) ----------------------------------------------
 ASSET_ALLOCATIONS = {
-    'USDCHF': 0.15,   # 15% - Deflation hedge (safe haven currency)
-    'XAUUSD': 0.15,   # 15% - Inflation hedge (gold standard)
-    'GBPUSD': 0.12,   # 12% - Standard forex exposure
-    'EURUSD': 0.12,   # 12% - Standard forex exposure
-    'XAGUSD': 0.12,   # 12% - Commodity/industrial metal
-    'AUDUSD': 0.10,   # 10% - Commodity currency
-    'EURJPY': 0.12,   # 12% - JPY cross (Asian session + carry)
-    'USDJPY': 0.12,   # 12% - JPY core pair (BOJ policy sensitivity)
+    'USDCHF': 0.15,   # 15% ñ Deflation hedge (safe haven currency)
+    'XAUUSD': 0.15,   # 15% ñ Inflation hedge (gold)
+    'GBPUSD': 0.12,   # 12% ñ Standard forex
+    'EURUSD': 0.12,   # 12% ñ Standard forex
+    'XAGUSD': 0.12,   # 12% ñ Commodity / industrial metal (silver)
+    'AUDUSD': 0.10,   # 10% ñ Commodity currency
+    'EURJPY': 0.12,   # 12% ñ JPY cross (Asian session + carry)
+    'USDJPY': 0.12,   # 12% ñ JPY core pair (BOJ policy sensitivity)
 }
 
-# Default risk percentage per trade (% of allocated capital, not total portfolio)
-DEFAULT_RISK_PERCENT = 0.01  # 1% of allocated capital (configurable)
+# -- Per-trade risk (% of allocated capital) -------------------------------------
+DEFAULT_RISK_PERCENT_NORMAL     = 0.01   # 1% ñ NORMAL mode
+DEFAULT_RISK_PERCENT_AGGRESSIVE = 0.03   # 3% ñ AGGRESSIVE mode
+
+# -- Dynamic Drawdown Cap Configuration ------------------------------------------
+#   DD_CAP_HIGH  = starting cap for small accounts (= DD_SCALE_START_BALANCE)
+#   DD_CAP_FLOOR = minimum cap for large accounts  (= DD_SCALE_FLOOR_BALANCE)
+#   Between the two balances: linearly interpolated
+
+# NORMAL mode DD cap range
+DD_CAP_HIGH_NORMAL   = 0.40   # 40% ñ starting cap at small balance ($100)
+DD_CAP_FLOOR_NORMAL  = 0.10   # 10% ñ floor cap once account is "large"
+
+# AGGRESSIVE mode DD cap range
+DD_CAP_HIGH_AGGRESSIVE  = 0.60   # 60% ñ starting cap at small balance ($100)
+DD_CAP_FLOOR_AGGRESSIVE = 0.20   # 20% ñ floor cap once account is "large"
+
+# Balance thresholds that define the scaling range
+DD_SCALE_START_BALANCE = 100.0    # USD ñ below/at this: use HIGH cap
+DD_SCALE_FLOOR_BALANCE = 2000.0   # USD ñ above/at this: use FLOOR cap
+
+# Maximum simultaneous open risk across ALL positions (sum of individual risk_amounts)
+MAX_SIMULTANEOUS_RISK_PCT_NORMAL     = 0.06   #  6% of balance ñ NORMAL
+MAX_SIMULTANEOUS_RISK_PCT_AGGRESSIVE = 0.50   # 50% of balance ñ AGGRESSIVE
+
+# Small-balance guard
+SMALL_BALANCE_THRESHOLD = 500.0   # USD ñ "small account" boundary
+MIN_RISK_AMOUNT_USD     = 0.50    # Absolute minimum risk per trade in USD
+
+
+def _compute_dynamic_dd_cap(balance: float, cap_high: float, cap_floor: float) -> float:
+    """Linearly interpolate the DD cap between cap_high and cap_floor
+    based on the current account balance.
+
+    Scaling range: DD_SCALE_START_BALANCE ? DD_SCALE_FLOOR_BALANCE
+
+      balance = START  ?  cap_high   (maximum tolerance, small account)
+      balance = FLOOR  ?  cap_floor  (minimum tolerance, grown account)
+      between          ?  linear interpolation
+
+    Args:
+        balance:   Current account balance in USD.
+        cap_high:  DD cap for small accounts (e.g. 0.40 for NORMAL).
+        cap_floor: DD cap floor for large accounts (e.g. 0.10 for NORMAL).
+
+    Returns:
+        float: DD cap as a decimal (e.g. 0.35 = 35%).
+    """
+    if balance <= DD_SCALE_START_BALANCE:
+        return cap_high
+    if balance >= DD_SCALE_FLOOR_BALANCE:
+        return cap_floor
+
+    # Linear interpolation between START and FLOOR balances
+    scale_range   = DD_SCALE_FLOOR_BALANCE - DD_SCALE_START_BALANCE  # e.g. 1900
+    balance_above = balance - DD_SCALE_START_BALANCE                  # e.g. 400 at $500
+    progress      = balance_above / scale_range                       # 0.0 ? 1.0
+
+    cap_range = cap_high - cap_floor                                  # e.g. 0.30
+    return cap_high - (progress * cap_range)                          # shrinks as balance grows
+
+
+def _get_mode_params(mode: str, balance: float = DD_SCALE_START_BALANCE):
+    """Return (risk_pct, max_dd_pct, max_simultaneous_risk_pct) for the given
+    mode and current account balance.
+
+    The max_dd_pct is dynamically computed based on balance ó it starts high
+    for small accounts and shrinks as the account grows, protecting capital.
+
+    Args:
+        mode:    TRADING_MODE_NORMAL or TRADING_MODE_AGGRESSIVE.
+        balance: Current account balance in USD (used for dynamic DD cap).
+
+    Returns:
+        tuple: (risk_pct, dynamic_max_dd_pct, max_simultaneous_risk_pct)
+    """
+    if mode == TRADING_MODE_AGGRESSIVE:
+        dynamic_dd = _compute_dynamic_dd_cap(
+            balance, DD_CAP_HIGH_AGGRESSIVE, DD_CAP_FLOOR_AGGRESSIVE
+        )
+        return (DEFAULT_RISK_PERCENT_AGGRESSIVE,
+                dynamic_dd,
+                MAX_SIMULTANEOUS_RISK_PCT_AGGRESSIVE)
+
+    # NORMAL mode
+    dynamic_dd = _compute_dynamic_dd_cap(
+        balance, DD_CAP_HIGH_NORMAL, DD_CAP_FLOOR_NORMAL
+    )
+    return (DEFAULT_RISK_PERCENT_NORMAL,
+            dynamic_dd,
+            MAX_SIMULTANEOUS_RISK_PCT_NORMAL)
 
 # Application Version
 APP_VERSION = "1.2.3"
@@ -360,6 +483,29 @@ class AdvancedMT5TradingMonitorGUI:
         self.utc_offset_combo.bind("<<ComboboxSelected>>", self.on_utc_offset_change)
         
         ttk.Label(utc_row, text="(Change for Summer/Winter)", font=("Arial", 8)).pack(side=tk.LEFT, padx=(5, 0))
+
+        # Third row: Trading Mode selector
+        mode_row = ttk.Frame(control_frame)
+        mode_row.pack(fill=tk.X, pady=(4, 0))
+
+        ttk.Label(mode_row, text="Trading Mode:", font=("Arial", 9, "bold")).pack(side=tk.LEFT, padx=(0, 5))
+        self.trading_mode_var = tk.StringVar(value=ACTIVE_TRADING_MODE)
+        mode_normal_btn = ttk.Radiobutton(
+            mode_row, text="?? NORMAL (safe)", variable=self.trading_mode_var,
+            value=TRADING_MODE_NORMAL, command=self.on_trading_mode_change)
+        mode_normal_btn.pack(side=tk.LEFT, padx=(0, 8))
+        mode_aggr_btn = ttk.Radiobutton(
+            mode_row, text="? AGGRESSIVE (max growth)", variable=self.trading_mode_var,
+            value=TRADING_MODE_AGGRESSIVE, command=self.on_trading_mode_change)
+        mode_aggr_btn.pack(side=tk.LEFT)
+
+        # Mode info label (updates dynamically)
+        self.mode_info_label = ttk.Label(
+            control_frame,
+            text=self._get_mode_info_text(ACTIVE_TRADING_MODE),
+            font=("Arial", 8), foreground="navy"
+        )
+        self.mode_info_label.pack(fill=tk.X, pady=(2, 0))
         
         # Strategy phase tracking
         phase_frame = ttk.LabelFrame(parent, text="Strategy Phase Tracking", padding="5")
@@ -639,7 +785,7 @@ class AdvancedMT5TradingMonitorGUI:
                 }
                 
                 # Load configuration from strategy file (supports bundled EXE)
-                strategy_rel_path = f"strategies/sunrise_ogle_{symbol.lower()}.py"
+                strategy_rel_path = f"strategies/kips_strategy_{symbol.lower()}.py"
                 strategy_file = self.get_resource_path(strategy_rel_path)
                 
                 config = self.parse_strategy_config(strategy_file, symbol)
@@ -738,6 +884,232 @@ class AdvancedMT5TradingMonitorGUI:
         except Exception as e:
             self.terminal_log(f"[X] Failed to save UTC offset: {str(e)}", "ERROR", critical=True)
             
+    # --------------------------------------------------------------------------
+    # TRADING MODE HELPERS
+    # --------------------------------------------------------------------------
+
+    def _get_mode_info_text(self, mode: str) -> str:
+        """Return a one-line description shown below the mode selector.
+        Includes the dynamic DD cap range so the user always sees what's active.
+        """
+        if mode == TRADING_MODE_AGGRESSIVE:
+            return (
+                f"? AGGRESSIVE: 3% risk/trade | DD cap {DD_CAP_HIGH_AGGRESSIVE*100:.0f}%"
+                f" (${DD_SCALE_START_BALANCE:.0f}) ? {DD_CAP_FLOOR_AGGRESSIVE*100:.0f}%"
+                f" (${DD_SCALE_FLOOR_BALANCE:.0f}+) | Up to 3 layers/symbol"
+            )
+        return (
+            f"?? NORMAL: 1% risk/trade | DD cap {DD_CAP_HIGH_NORMAL*100:.0f}%"
+            f" (${DD_SCALE_START_BALANCE:.0f}) ? {DD_CAP_FLOOR_NORMAL*100:.0f}%"
+            f" (${DD_SCALE_FLOOR_BALANCE:.0f}+) | 1 layer/symbol"
+        )
+
+    def get_active_trading_mode(self) -> str:
+        """Return the currently selected trading mode (GUI-authoritative)."""
+        try:
+            return self.trading_mode_var.get()
+        except AttributeError:
+            return ACTIVE_TRADING_MODE
+
+    def on_trading_mode_change(self):
+        """Handle trading-mode radio-button change."""
+        global ACTIVE_TRADING_MODE
+        new_mode = self.trading_mode_var.get()
+        ACTIVE_TRADING_MODE = new_mode
+
+        # Update info label
+        if hasattr(self, 'mode_info_label'):
+            self.mode_info_label.config(text=self._get_mode_info_text(new_mode))
+
+        if new_mode == TRADING_MODE_AGGRESSIVE:
+            # Warn the user once
+            confirmed = messagebox.askyesno(
+                "? AGGRESSIVE Mode",
+                "You are switching to AGGRESSIVE mode.\n\n"
+                "ï Risk per trade: 3% of allocated capital\n"
+                f"ï Max drawdown at ${DD_SCALE_START_BALANCE:.0f} balance: {DD_CAP_HIGH_AGGRESSIVE*100:.0f}%\n"
+                f"ï Max drawdown at ${DD_SCALE_FLOOR_BALANCE:.0f}+ balance: {DD_CAP_FLOOR_AGGRESSIVE*100:.0f}%\n"
+                "ï DD cap DECREASES automatically as your balance grows\n"
+                "ï Up to 3 simultaneous positions per symbol\n\n"
+                "This mode is designed for small-account bootstrapping.\n"
+                "The more you profit, the tighter the protection becomes.\n\n"
+                "Are you sure you want to continue?",
+                icon="warning"
+            )
+            if not confirmed:
+                # Revert
+                self.trading_mode_var.set(TRADING_MODE_NORMAL)
+                ACTIVE_TRADING_MODE = TRADING_MODE_NORMAL
+                self.mode_info_label.config(text=self._get_mode_info_text(TRADING_MODE_NORMAL))
+                return
+
+        self.terminal_log(
+            f"? Trading mode changed to: {new_mode}  |  "
+            f"Risk={DEFAULT_RISK_PERCENT_AGGRESSIVE*100:.0f}% "
+            f"if AGGRESSIVE else {DEFAULT_RISK_PERCENT_NORMAL*100:.0f}%  |  "
+            f"MaxDD={'50%' if new_mode==TRADING_MODE_AGGRESSIVE else '15%'}",
+            "INFO", critical=True
+        )
+
+    # --------------------------------------------------------------------------
+    # DALIO RISK CALCULATION (central, mode-aware)
+    # --------------------------------------------------------------------------
+
+    def calculate_dalio_risk_amount(
+        self,
+        symbol: str,
+        balance: float,
+        override_mode: Optional[str] = None
+    ) -> dict:
+        """Compute the Dalio risk amount for a single trade, fully mode-aware.
+
+        Returns a dict with:
+            allocation_pct   ñ asset's portfolio weight
+            allocated_usd    ñ balance ◊ allocation_pct
+            risk_pct         ñ per-trade risk % of allocated capital
+            risk_amount      ñ USD amount to risk on this trade
+            mode             ñ active trading mode
+            balance          ñ input balance (for logging)
+            small_balance    ñ True if balance < SMALL_BALANCE_THRESHOLD
+        """
+        mode = override_mode or self.get_active_trading_mode()
+        risk_pct, max_dd_pct, _ = _get_mode_params(mode, balance)
+
+        # 1. Asset allocation weight
+        allocation_pct = ASSET_ALLOCATIONS.get(symbol, 0.12)
+        allocated_usd  = balance * allocation_pct
+
+        # 2. Per-strategy override (e.g. RISK_PER_TRADE in strategy file)
+        config = self.strategy_configs.get(symbol, {})
+        strategy_risk_override = config.get('RISK_PER_TRADE', None)
+        if strategy_risk_override is not None:
+            try:
+                risk_pct = float(strategy_risk_override)
+            except (ValueError, TypeError):
+                pass  # Keep mode default
+
+        # 3. Raw risk amount
+        risk_amount = allocated_usd * risk_pct
+
+        # 4. Small-balance guard:
+        #    If calculated risk is below the absolute minimum, scale up risk_pct
+        #    so the trade is still executable at the broker's minimum lot.
+        small_balance = balance < SMALL_BALANCE_THRESHOLD
+        if small_balance and risk_amount < MIN_RISK_AMOUNT_USD:
+            risk_amount = MIN_RISK_AMOUNT_USD
+            risk_pct = risk_amount / allocated_usd if allocated_usd > 0 else risk_pct
+
+        # 5. Hard cap: single trade risk_amount must never exceed max_dd_pct ◊ balance.
+        #    (Dynamic DD cap already shrinks as balance grows via _get_mode_params.)
+        single_trade_cap = balance * max_dd_pct
+        if risk_amount > single_trade_cap:
+            risk_amount = single_trade_cap
+            risk_pct = risk_amount / allocated_usd if allocated_usd > 0 else risk_pct
+
+        return {
+            'allocation_pct': allocation_pct,
+            'allocated_usd':  allocated_usd,
+            'risk_pct':       risk_pct,
+            'risk_amount':    risk_amount,
+            'mode':           mode,
+            'balance':        balance,
+            'small_balance':  small_balance,
+            'dynamic_dd_cap': max_dd_pct,   # ? live value for logging/display
+        }
+
+    def check_portfolio_drawdown_guard(self, balance: float) -> bool:
+        """Return False (block new entries) if total open floating P&L has already
+        consumed the dynamically-computed drawdown cap for the active trading mode.
+
+        The DD cap shrinks as the account balance grows:
+          NORMAL:     40% at $100  ?  10% at $2,000+
+          AGGRESSIVE: 60% at $100  ?  20% at $2,000+
+        """
+        if not mt5 or not self.mt5_connected:
+            return True  # Can't check ñ allow (fail-open)
+
+        try:
+            account_info = mt5.account_info()  # type: ignore
+            if account_info is None:
+                return True
+
+            equity  = account_info.equity
+            balance = account_info.balance
+            if balance <= 0:
+                return True
+
+            mode = self.get_active_trading_mode()
+            # Pass balance so DD cap is computed dynamically
+            _, max_dd_pct, _ = _get_mode_params(mode, balance)
+
+            current_dd = (balance - equity) / balance   # positive = drawdown
+
+            # Always log current DD status with the dynamic cap for visibility
+            self.terminal_log(
+                f"?? DD CHECK [{mode}]: Balance=${balance:.2f} | "
+                f"Equity=${equity:.2f} | DD={current_dd*100:.1f}% | "
+                f"Dynamic Cap={max_dd_pct*100:.1f}%  "
+                f"({'$' + str(int(DD_SCALE_START_BALANCE)) + '?$' + str(int(DD_SCALE_FLOOR_BALANCE)) + ' scaling'})",
+                "INFO", critical=True
+            )
+
+            if current_dd >= max_dd_pct:
+                self.terminal_log(
+                    f"?? DRAWDOWN GUARD [{mode}]: Current DD {current_dd*100:.1f}% = "
+                    f"Dynamic Cap {max_dd_pct*100:.1f}% ó ALL new entries BLOCKED",
+                    "ERROR", critical=True
+                )
+                return False   # Block
+
+            return True  # Allow
+
+        except Exception as e:
+            self.terminal_log(f"[X] Drawdown guard error: {str(e)}", "ERROR", critical=True)
+            return True   # Fail-open
+
+    def check_simultaneous_risk_guard(self, symbol: str, new_risk_amount: float, balance: float) -> bool:
+        """Return False if adding new_risk_amount would push total simultaneous
+        open risk beyond the mode's MAX_SIMULTANEOUS_RISK_PCT limit.
+        """
+        if not mt5 or not self.mt5_connected:
+            return True
+
+        try:
+            mode = self.get_active_trading_mode()
+            # Pass balance so simultaneous risk cap uses the dynamic-aware params
+            _, _, max_sim_risk_pct = _get_mode_params(mode, balance)
+            max_risk_usd = balance * max_sim_risk_pct
+
+            # Sum risk already at stake (SL distance ◊ volume ◊ value_per_point)
+            all_positions = mt5.positions_get()  # type: ignore
+            existing_risk = 0.0
+            if all_positions:
+                for pos in all_positions:
+                    if pos.sl > 0:
+                        sl_dist = abs(pos.price_open - pos.sl)
+                        sym_info = mt5.symbol_info(pos.symbol)  # type: ignore
+                        if sym_info and sym_info.point > 0 and sym_info.trade_tick_size > 0:
+                            vpp = sym_info.trade_tick_value * (sym_info.point / sym_info.trade_tick_size)
+                            existing_risk += (sl_dist / sym_info.point) * vpp * pos.volume
+                        else:
+                            existing_risk += new_risk_amount  # conservative proxy
+
+            projected_total = existing_risk + new_risk_amount
+            if projected_total > max_risk_usd:
+                self.terminal_log(
+                    f"? SIMULTANEOUS RISK GUARD [{mode}]: Projected risk "
+                    f"${projected_total:.2f} > Max ${max_risk_usd:.2f} "
+                    f"({max_sim_risk_pct*100:.0f}% of ${balance:.2f}) ó Entry BLOCKED",
+                    "WARNING", critical=True
+                )
+                return False
+
+            return True
+
+        except Exception as e:
+            self.terminal_log(f"[X] Simultaneous risk guard error: {str(e)}", "ERROR", critical=True)
+            return True
+
     def parse_strategy_config(self, file_path, symbol):
         """Parse strategy configuration from file"""
         config = {}
@@ -929,7 +1301,7 @@ class AdvancedMT5TradingMonitorGUI:
         self.terminal_log(f" {symbol}: Retrying configuration load...", "WARNING", critical=True)
         
         try:
-            strategy_rel_path = f"strategies/sunrise_ogle_{symbol.lower()}.py"
+            strategy_rel_path = f"strategies/kips_strategy_{symbol.lower()}.py"
             strategy_file = self.get_resource_path(strategy_rel_path)
             
             config = self.parse_strategy_config(strategy_file, symbol)
@@ -1268,7 +1640,7 @@ class AdvancedMT5TradingMonitorGUI:
         
         # Startup Summary
         self.terminal_log("=" * 70, "SUCCESS", critical=True)
-        self.terminal_log(f" MT5 TRADING BOT v{APP_VERSION} - SUNRISE OGLE STRATEGY ACTIVATED", "SUCCESS", critical=True)
+        self.terminal_log(f" MT5 TRADING BOT v{APP_VERSION} - KIPS STRATEGY STRATEGY ACTIVATED", "SUCCESS", critical=True)
         self.terminal_log("=" * 70, "SUCCESS", critical=True)
         self.terminal_log(f" Monitored Pairs: {', '.join(self.strategy_states.keys())}", "INFO", critical=True)
         self.terminal_log(f" Timeframe: 5-Minute (M5)", "INFO", critical=True)
@@ -1720,14 +2092,14 @@ class AdvancedMT5TradingMonitorGUI:
             # Check range
             if angle < min_angle or angle > max_angle:
                 self.terminal_log(
-                    f"[X] {symbol} {direction}: Angle {angle:.2f}¬∞ outside range [{min_angle:.1f}¬∞, {max_angle:.1f}¬∞]", 
+                    f"[X] {symbol} {direction}: Angle {angle:.2f}∞ outside range [{min_angle:.1f}∞, {max_angle:.1f}∞]", 
                     "WARNING", critical=True
                 )
                 return False
             
             # Log angle value when passing (v1.2.1 enhancement)
             self.terminal_log(
-                f"   üìê {symbol}: Angle={angle:.2f}¬∞ (range [{min_angle:.1f}¬∞, {max_angle:.1f}¬∞]) ‚Üí ‚úÖ PASS", 
+                f"   ?? {symbol}: Angle={angle:.2f}∞ (range [{min_angle:.1f}∞, {max_angle:.1f}∞]) ? ? PASS", 
                 "INFO", critical=True
             )
             return True
@@ -2769,7 +3141,7 @@ class AdvancedMT5TradingMonitorGUI:
         """4-PHASE STATE MACHINE - Exact copy of original strategy logic
         
         States: SCANNING -> ARMED_LONG/SHORT -> WINDOW_OPEN -> Entry/Reset
-        Matches: sunrise_ogle_*.py state machine exactly
+        Matches: kips_strategy_*.py state machine exactly
         """
         # Type guard for pandas (required for operation)
         if pd is None or mt5 is None:
@@ -2788,7 +3160,7 @@ class AdvancedMT5TradingMonitorGUI:
             positions = mt5.positions_get(symbol=symbol)  # type: ignore
             if positions is not None and len(positions) > 0:
                 # Found open position but state doesn't reflect it
-                self.terminal_log(f"üîÑ {symbol}: Detected ORPHAN POSITION (Ticket #{positions[0].ticket}) - Syncing state to IN_TRADE", 
+                self.terminal_log(f"?? {symbol}: Detected ORPHAN POSITION (Ticket #{positions[0].ticket}) - Syncing state to IN_TRADE", 
                                 "WARNING", critical=True)
                 current_state['entry_state'] = 'IN_TRADE'
                 current_state['phase'] = 'IN_TRADE'
@@ -2897,20 +3269,20 @@ class AdvancedMT5TradingMonitorGUI:
                 # ARMED_LONG: Reset if bearish crossover + RED candle
                 if entry_state == 'ARMED_LONG' and bearish_cross and last_closed_bearish:
                     opposing_signal = True
-                    self.terminal_log(f"‚õî {symbol}: GLOBAL INVALIDATION - Bearish crossover + RED candle in ARMED_LONG", 
+                    self.terminal_log(f"? {symbol}: GLOBAL INVALIDATION - Bearish crossover + RED candle in ARMED_LONG", 
                                     "WARNING", critical=True)
                 
                 # ARMED_SHORT: Reset if bullish crossover + GREEN candle
                 elif entry_state == 'ARMED_SHORT' and bullish_cross and last_closed_bullish:
                     opposing_signal = True
-                    self.terminal_log(f"‚õî {symbol}: GLOBAL INVALIDATION - Bullish crossover + GREEN candle in ARMED_SHORT", 
+                    self.terminal_log(f"? {symbol}: GLOBAL INVALIDATION - Bullish crossover + GREEN candle in ARMED_SHORT", 
                                     "WARNING", critical=True)
                 
                 # Log when crossover detected but candle color doesn't match (no invalidation)
                 elif bearish_cross or bullish_cross:
                     cross_type = "Bearish" if bearish_cross else "Bullish"
                     candle_color = "RED" if last_closed_bearish else "GREEN"
-                    self.terminal_log(f"üîç {symbol}: {cross_type} crossover detected but last candle is {candle_color} - No invalidation", 
+                    self.terminal_log(f"?? {symbol}: {cross_type} crossover detected but last candle is {candle_color} - No invalidation", 
                                     "INFO", critical=True)
                 
                 if opposing_signal:
@@ -3192,14 +3564,14 @@ class AdvancedMT5TradingMonitorGUI:
                                 
                                 # ARMED_LONG: Invalidate if bearish crossover + current candle is red
                                 if armed_direction == 'LONG' and bearish_cross and current_candle_bearish:
-                                    self.terminal_log(f"‚õî {symbol}: GLOBAL INVALIDATION at {candle_time_str} - Bearish crossover + RED candle during ARMED_LONG", 
+                                    self.terminal_log(f"? {symbol}: GLOBAL INVALIDATION at {candle_time_str} - Bearish crossover + RED candle during ARMED_LONG", 
                                                     "WARNING", critical=True)
                                     self._reset_entry_state(symbol)
                                     return 'SCANNING'
                                 
                                 # ARMED_SHORT: Invalidate if bullish crossover + current candle is green
                                 elif armed_direction == 'SHORT' and bullish_cross and current_candle_bullish:
-                                    self.terminal_log(f"‚õî {symbol}: GLOBAL INVALIDATION at {candle_time_str} - Bullish crossover + GREEN candle during ARMED_SHORT", 
+                                    self.terminal_log(f"? {symbol}: GLOBAL INVALIDATION at {candle_time_str} - Bullish crossover + GREEN candle during ARMED_SHORT", 
                                                     "WARNING", critical=True)
                                     self._reset_entry_state(symbol)
                                     return 'SCANNING'
@@ -3208,7 +3580,7 @@ class AdvancedMT5TradingMonitorGUI:
                                 elif bearish_cross or bullish_cross:
                                     cross_type = "Bearish" if bearish_cross else "Bullish"
                                     candle_color = "RED" if current_candle_bearish else "GREEN"
-                                    self.terminal_log(f"üîç {symbol}: {cross_type} crossover at {candle_time_str} but candle is {candle_color} - No invalidation", 
+                                    self.terminal_log(f"?? {symbol}: {cross_type} crossover at {candle_time_str} but candle is {candle_color} - No invalidation", 
                                                     "INFO", critical=True)
                             # =====================================================
                             
@@ -4297,41 +4669,56 @@ class AdvancedMT5TradingMonitorGUI:
                 return False  # Don't open duplicate position
             
             # ==========
-            # DALIO ALL-WEATHER PORTFOLIO ALLOCATION - POSITION SIZING
+            # DALIO ALL-WEATHER PORTFOLIO ALLOCATION - POSITION SIZING  (v2.0)
+            # Mode-aware: NORMAL (1% / 15% DD) or AGGRESSIVE (3% / 50% DD)
+            # Small-balance guard: scales risk up to MIN_RISK_AMOUNT_USD when needed
             # ==========
-            # Calculate position size using asset-specific allocation
-            # Risk = risk_percent x allocated_capital (NOT total portfolio)
-            # ==========
-            
+
             # Get real-time account balance from MT5
             balance = account_info.balance
-            
-            # Get asset-specific allocation (default 16% if symbol not in allocations)
-            allocation_percent = ASSET_ALLOCATIONS.get(symbol, 0.16)
-            allocated_capital = balance * allocation_percent
-            
-            # Get risk percentage (configurable per strategy, default 1%)
-            # This is % of ALLOCATED capital, not total portfolio
-            risk_percent = config.get('RISK_PER_TRADE', DEFAULT_RISK_PERCENT)
-            
-            # Calculate risk amount based on allocated capital
-            risk_amount = allocated_capital * risk_percent
-            
+
+            # -- 1. Portfolio-level drawdown guard -----------------------------
+            if not self.check_portfolio_drawdown_guard(balance):
+                return False   # Max drawdown reached ñ block all entries
+
+            # -- 2. Compute risk amount via centralized Dalio engine -----------
+            risk_info = self.calculate_dalio_risk_amount(symbol, balance)
+            allocation_percent = risk_info['allocation_pct']
+            allocated_capital  = risk_info['allocated_usd']
+            risk_percent       = risk_info['risk_pct']
+            risk_amount        = risk_info['risk_amount']
+            active_mode        = risk_info['mode']
+            small_balance_flag = risk_info['small_balance']
+            dynamic_dd_cap     = risk_info['dynamic_dd_cap']
+
+            # -- 3. Simultaneous-risk guard ------------------------------------
+            if not self.check_simultaneous_risk_guard(symbol, risk_amount, balance):
+                return False   # Adding this trade would exceed the mode's exposure cap
+
             # Log allocation details for transparency
+            mode_tag = f"[{active_mode}]{'  ? small-balance' if small_balance_flag else ''}"
             self.terminal_log(
-                f" {symbol}: Dalio Allocation System",
+                f"?? {symbol}: Dalio Allocation System  {mode_tag}",
                 "INFO", critical=True
             )
             self.terminal_log(
-                f"   Portfolio Balance: ${balance:,.2f}",
+                f"   Portfolio Balance:  ${balance:,.2f}  "
+                f"({'SMALL ñ <$' + str(int(SMALL_BALANCE_THRESHOLD)) if small_balance_flag else 'Standard'})",
                 "INFO", critical=True
             )
             self.terminal_log(
-                f"   Asset Allocation: {allocation_percent*100:.0f}% = ${allocated_capital:,.2f}",
+                f"   Asset Allocation:   {allocation_percent*100:.0f}% = ${allocated_capital:,.2f}",
                 "INFO", critical=True
             )
             self.terminal_log(
-                f"   Risk Per Trade: {risk_percent*100:.1f}% of allocated = ${risk_amount:.2f}",
+                f"   Risk Per Trade:     {risk_percent*100:.2f}% of allocated = ${risk_amount:.2f}",
+                "INFO", critical=True
+            )
+            self.terminal_log(
+                f"   Dynamic DD Cap:     {dynamic_dd_cap*100:.1f}%  "
+                f"(scales {DD_CAP_HIGH_NORMAL*100:.0f}%?{DD_CAP_FLOOR_NORMAL*100:.0f}% NORMAL / "
+                f"{DD_CAP_HIGH_AGGRESSIVE*100:.0f}%?{DD_CAP_FLOOR_AGGRESSIVE*100:.0f}% AGGRESSIVE "
+                f"from ${DD_SCALE_START_BALANCE:.0f} to ${DD_SCALE_FLOOR_BALANCE:.0f})",
                 "INFO", critical=True
             )
             

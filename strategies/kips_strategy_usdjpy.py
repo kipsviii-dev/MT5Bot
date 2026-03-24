@@ -141,6 +141,13 @@ QUICK_TEST = False                    # True: Reduce to last 10 days for quick t
 LIMIT_BARS = 0                        # >0: Stop after N bars processed (0 = no limit)
 ENABLE_PLOT = True                    # Show final chart with trades (requires matplotlib)
 
+# === TRADING MODE ===
+# NORMAL     : Conservative – London Open + NY AM kill zones only, 4H trend must be
+#              BULLISH or NEUTRAL, strict ATR range, single position.
+# AGGRESSIVE : All 5 kill zones active, up to 3 layered positions, softer ATR bounds,
+#              automatic breakeven and de-risk logic.
+TRADING_MODE = 'NORMAL'               # 'NORMAL' or 'AGGRESSIVE'
+
 # === FOREX CONFIGURATION ===
 ENABLE_FOREX_CALC = True              # Enable advanced forex position calculations
 FOREX_INSTRUMENT = 'USDJPY'           # Fixed to USDJPY
@@ -247,7 +254,7 @@ ENTRY_END_HOUR = 23                        # End hour for entry window (UTC)
 ENTRY_END_MINUTE = 59                      # End minute for entry window (UTC)
 
 
-class SunriseOgleUSDJPY(bt.Strategy):
+class KipsStrategyUSDJPY(bt.Strategy):
     params = dict(
         # === TECHNICAL INDICATORS ===
         ema_fast_length=14,              # Fast EMA period for trend detection
@@ -1782,7 +1789,7 @@ class SunriseOgleUSDJPY(bt.Strategy):
                 self.cancel(self.limit_order)
                 self.limit_order = None
         
-        print("=== SUNRISE OGLE USDJPY SUMMARY ===")
+        print("=== KIPS STRATEGY USDJPY SUMMARY ===")
         
         wr = (self.wins / self.trades * 100.0) if self.trades else 0.0
         pf = (self.gross_profit / self.gross_loss) if self.gross_loss > 0 else float('inf')
@@ -1888,24 +1895,24 @@ if __name__ == '__main__':
     # Add custom commission for USDJPY
     cerebro.broker.addcommissioninfo(USDJPYCommission(), name='USDJPY')
 
-    cerebro.addstrategy(SunriseOgleUSDJPY, **STRAT_KWARGS)
-    try: cerebro.addobserver(bt.observers.BuySell, barplot=False, plotdist=SunriseOgleUSDJPY.params.buy_sell_plotdist)
+    cerebro.addstrategy(KipsStrategyUSDJPY, **STRAT_KWARGS)
+    try: cerebro.addobserver(bt.observers.BuySell, barplot=False, plotdist=KipsStrategyUSDJPY.params.buy_sell_plotdist)
     except Exception: pass
-    if SunriseOgleUSDJPY.params.plot_sltp_lines:
+    if KipsStrategyUSDJPY.params.plot_sltp_lines:
         try: cerebro.addobserver(SLTPObserver)
         except Exception: pass
     try: cerebro.addobserver(bt.observers.Value)
     except Exception: pass
 
     if LIMIT_BARS > 0:
-        orig_next = SunriseOgleUSDJPY.next
+        orig_next = KipsStrategyUSDJPY.next
         def limited_next(self):
             if len(self.data) >= LIMIT_BARS:
                 self.env.runstop(); return
             orig_next(self)
-        SunriseOgleUSDJPY.next = limited_next
+        KipsStrategyUSDJPY.next = limited_next
 
-    print(f"=== SUNRISE OGLE USDJPY === (from {FROMDATE} to {TODATE})")
+    print(f"=== KIPS STRATEGY USDJPY === (from {FROMDATE} to {TODATE})")
     if ENABLE_FOREX_CALC:
         print(f">> FOREX MODE ENABLED - Data: {DATA_FILENAME}")
         print(f">> Instrument: USDJPY")
@@ -1928,11 +1935,11 @@ if __name__ == '__main__':
             'short_enabled': False,
             'print_signals': True
         })
-        cerebro_long.addstrategy(SunriseOgleUSDJPY, **long_kwargs)
+        cerebro_long.addstrategy(KipsStrategyUSDJPY, **long_kwargs)
         
-        try: cerebro_long.addobserver(bt.observers.BuySell, barplot=False, plotdist=SunriseOgleUSDJPY.params.buy_sell_plotdist)
+        try: cerebro_long.addobserver(bt.observers.BuySell, barplot=False, plotdist=KipsStrategyUSDJPY.params.buy_sell_plotdist)
         except Exception: pass
-        if SunriseOgleUSDJPY.params.plot_sltp_lines:
+        if KipsStrategyUSDJPY.params.plot_sltp_lines:
             try: cerebro_long.addobserver(SLTPObserver)
             except Exception: pass
         try: cerebro_long.addobserver(bt.observers.Value)
@@ -1954,11 +1961,11 @@ if __name__ == '__main__':
             'short_enabled': True,
             'print_signals': True
         })
-        cerebro_short.addstrategy(SunriseOgleUSDJPY, **short_kwargs)
+        cerebro_short.addstrategy(KipsStrategyUSDJPY, **short_kwargs)
         
-        try: cerebro_short.addobserver(bt.observers.BuySell, barplot=False, plotdist=SunriseOgleUSDJPY.params.buy_sell_plotdist)
+        try: cerebro_short.addobserver(bt.observers.BuySell, barplot=False, plotdist=KipsStrategyUSDJPY.params.buy_sell_plotdist)
         except Exception: pass
-        if SunriseOgleUSDJPY.params.plot_sltp_lines:
+        if KipsStrategyUSDJPY.params.plot_sltp_lines:
             try: cerebro_short.addobserver(SLTPObserver)
             except Exception: pass
         try: cerebro_short.addobserver(bt.observers.Value)

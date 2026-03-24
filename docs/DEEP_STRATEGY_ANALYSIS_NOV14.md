@@ -367,7 +367,7 @@ Result: REJECTED - Volatility insufficient + Wrong time
 #### **A. Pullback Counting Logic**
 **Backtrader Reference:**
 ```python
-# From original sunrise_ogle_gbpusd.py
+# From original kips_strategy_gbpusd.py
 if close < open:  # Bearish candle
     self.pullback_candle_count += 1
 else:

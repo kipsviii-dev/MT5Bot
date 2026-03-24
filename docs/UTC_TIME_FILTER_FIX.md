@@ -16,10 +16,10 @@
 ### 1. **Time Filter UTC Conversion** (4 Assets)
 
 Modified `_is_in_trading_time_range()` function in:
-- ✅ `sunrise_ogle_eurusd.py` (21:00-03:00 UTC)
-- ✅ `sunrise_ogle_audusd.py` (07:00-17:00 UTC)
-- ✅ `sunrise_ogle_xagusd.py` (07:00-17:00 UTC)
-- ✅ `sunrise_ogle_usdchf.py` (07:00-17:00 UTC)
+- ✅ `kips_strategy_eurusd.py` (21:00-03:00 UTC)
+- ✅ `kips_strategy_audusd.py` (07:00-17:00 UTC)
+- ✅ `kips_strategy_xagusd.py` (07:00-17:00 UTC)
+- ✅ `kips_strategy_usdchf.py` (07:00-17:00 UTC)
 
 **Implementation:**
 ```python

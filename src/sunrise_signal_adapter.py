@@ -39,12 +39,12 @@ if not LOCAL_STRATEGIES_DIR.exists():
 # Import strategies with individual error handling using dynamic imports
 strategy_classes = {}
 strategies_to_import = [
-    ('sunrise_ogle_eurusd', 'SunriseOgle', 'EURUSD'),
-    ('sunrise_ogle_gbpusd', 'SunriseOgle', 'GBPUSD'),
-    ('sunrise_ogle_xauusd', 'SunriseOgle', 'XAUUSD'),
-    ('sunrise_ogle_audusd', 'SunriseOgle', 'AUDUSD'),
-    ('sunrise_ogle_xagusd', 'SunriseOgle', 'XAGUSD'),
-    ('sunrise_ogle_usdchf', 'SunriseOgle', 'USDCHF')
+    ('kips_strategy_eurusd', 'KipsStrategy', 'EURUSD'),
+    ('kips_strategy_gbpusd', 'KipsStrategy', 'GBPUSD'),
+    ('kips_strategy_xauusd', 'KipsStrategy', 'XAUUSD'),
+    ('kips_strategy_audusd', 'KipsStrategy', 'AUDUSD'),
+    ('kips_strategy_xagusd', 'KipsStrategy', 'XAGUSD'),
+    ('kips_strategy_usdchf', 'KipsStrategy', 'USDCHF')
 ]
 
 for module_name, class_name, symbol in strategies_to_import:

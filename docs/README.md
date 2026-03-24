@@ -2,7 +2,65 @@
 
 > **Complete documentation library for the automated trading system**
 
-**Last Updated:** November 16, 2025
+**Last Updated:** March 25, 2026
+
+---
+
+## 🎯 Quick Navigation
+
+### 🚀 Getting Started (Start Here)
+
+1. **[START_TESTING_HERE.md](START_TESTING_HERE.md)** - Your first stop for system verification
+2. **[MT5_EMA_QUICK_SETUP.md](MT5_EMA_QUICK_SETUP.md)** - Add EMAs to MT5 charts (2 minutes)
+3. **[MT5_EMA_SETUP_GUIDE.md](MT5_EMA_SETUP_GUIDE.md)** - Detailed EMA configuration
+
+### 📊 Core Strategy Documentation
+
+4. **[DEEP_STRATEGY_ANALYSIS_NOV14.md](DEEP_STRATEGY_ANALYSIS_NOV14.md)** ⭐ - 25-page comprehensive analysis
+5. **[ENTRY_CONDITIONS_VERIFICATION.md](ENTRY_CONDITIONS_VERIFICATION.md)** - 6-layer filter validation
+6. **[PULLBACK_SYSTEM_FIX.md](PULLBACK_SYSTEM_FIX.md)** - Critical pullback flag fix
+
+### 💰 Ray Dalio Allocation System (v2.1)
+
+7. **[DALIO_ALLOCATION_SYSTEM.md](DALIO_ALLOCATION_SYSTEM.md)** ⭐ - Full implementation docs (trading modes, dynamic DD cap)
+8. **[DALIO_QUICK_REFERENCE.md](DALIO_QUICK_REFERENCE.md)** - Risk tables, scaling chart, log examples
+
+---
+
+## 🔧 Critical Fixes & Updates
+
+### ⚠️ Must-Read Fixes (Production-Critical)
+
+- **[ATR_BUG_FIX_COMPLETE.md](ATR_BUG_FIX_COMPLETE.md)** - ATR filter implementation (Oct 31, 2025)
+- **[CRITICAL_FIXES_OCT24_2025.md](CRITICAL_FIXES_OCT24_2025.md)** - Position sizing corrections
+- **[POSITION_SIZING_FIX_CRITICAL.md](POSITION_SIZING_FIX_CRITICAL.md)** - MT5 tick value integration
+- **[PULLBACK_COUNT_BUG_FIX.md](PULLBACK_COUNT_BUG_FIX.md)** - Pullback counting logic
+- **[DUPLICATE_ENTRY_FIX.md](DUPLICATE_ENTRY_FIX.md)** - Prevented duplicate trades
+
+### ✅ March 2026 Improvements
+
+- **[DALIO_ALLOCATION_SYSTEM.md](DALIO_ALLOCATION_SYSTEM.md)** — v2.1: Trading modes + Dynamic DD cap
+  - **NORMAL mode:** 1% risk, DD cap 40% (at $100) → 10% (at $2,000+)
+  - **AGGRESSIVE mode:** 3% risk, DD cap 60% (at $100) → 20% (at $2,000+)
+  - Small-balance guard: keeps bot viable on $100 accounts
+  - Three safety guards: drawdown, risk calculation, simultaneous exposure
+  - Mode-aware `LayerManager` in `src/layer_manager.py`
+
+---
+
+## 📚 System Architecture
+
+- **[PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md)** - Codebase organization
+- **[STRATEGY_FILES_POLICY.md](STRATEGY_FILES_POLICY.md)** - READ-ONLY strategy file policy
+- **[strategy_comparison.md](strategy_comparison.md)** - Source of Truth for strategy parameters
+
+---
+
+## 🚀 Deployment & Testing
+
+- **[DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md)** - Full deployment steps
+- **[START_TESTING_HERE.md](START_TESTING_HERE.md)** - Systematic testing procedure
+- **[QUICK_START.md](QUICK_START.md)** - Fast setup guide
 
 ---
 

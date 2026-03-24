@@ -12,12 +12,12 @@ mt5_live_trading_bot/
 │   └── __init__.py                      # Package initialization
 │
 ├── 📁 strategies/                       # Trading strategies
-│   ├── sunrise_ogle_audusd.py          # AUD/USD strategy
-│   ├── sunrise_ogle_eurusd.py          # EUR/USD strategy
-│   ├── sunrise_ogle_gbpusd.py          # GBP/USD strategy
-│   ├── sunrise_ogle_usdchf.py          # USD/CHF strategy
-│   ├── sunrise_ogle_xagusd.py          # XAG/USD strategy (Silver)
-│   ├── sunrise_ogle_xauusd.py          # XAU/USD strategy (Gold)
+│   ├── kips_strategy_audusd.py          # AUD/USD strategy
+│   ├── kips_strategy_eurusd.py          # EUR/USD strategy
+│   ├── kips_strategy_gbpusd.py          # GBP/USD strategy
+│   ├── kips_strategy_usdchf.py          # USD/CHF strategy
+│   ├── kips_strategy_xagusd.py          # XAG/USD strategy (Silver)
+│   ├── kips_strategy_xauusd.py          # XAU/USD strategy (Gold)
 │   └── __init__.py                      # Strategies package
 │
 ├── 📁 testing/                          # Test files

@@ -61,7 +61,7 @@ entry_state = 'SCANNING'
 4. **Duplicate Entry**: Bot opened second position on same symbol
 
 ### Original Strategy Behavior:
-From `sunrise_ogle_*.py` documentation (Line 18):
+From `kips_strategy_*.py` documentation (Line 18):
 > **"Only one position allowed at a time - conflicts result in position closure"**
 
 The original backtrader strategies automatically prevent duplicate entries because `self.position` exists until SL/TP closes it.

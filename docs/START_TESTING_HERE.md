@@ -172,12 +172,12 @@ XAUUSD  | 🟡 WAITING_PULLBACK| LONG      | 1        | No      | 17:25:58
 
 **Strategy Files (6):**
 ```
-✅ strategies/sunrise_ogle_audusd.py
-✅ strategies/sunrise_ogle_eurusd.py
-✅ strategies/sunrise_ogle_gbpusd.py
-✅ strategies/sunrise_ogle_usdchf.py
-✅ strategies/sunrise_ogle_xauusd.py
-✅ strategies/sunrise_ogle_xagusd.py
+✅ strategies/kips_strategy_audusd.py
+✅ strategies/kips_strategy_eurusd.py
+✅ strategies/kips_strategy_gbpusd.py
+✅ strategies/kips_strategy_usdchf.py
+✅ strategies/kips_strategy_xauusd.py
+✅ strategies/kips_strategy_xagusd.py
 ```
 
 ---

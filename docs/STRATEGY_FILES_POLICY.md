@@ -13,12 +13,12 @@ The files in `strategies/` folder are the **SOURCE OF TRUTH** for backtesting:
 
 ```
 strategies/
-├── sunrise_ogle_audusd.py    ❌ READ ONLY
-├── sunrise_ogle_eurusd.py    ❌ READ ONLY  
-├── sunrise_ogle_gbpusd.py    ❌ READ ONLY
-├── sunrise_ogle_usdchf.py    ❌ READ ONLY
-├── sunrise_ogle_xagusd.py    ❌ READ ONLY
-└── sunrise_ogle_xauusd.py    ❌ READ ONLY
+├── kips_strategy_audusd.py    ❌ READ ONLY
+├── kips_strategy_eurusd.py    ❌ READ ONLY  
+├── kips_strategy_gbpusd.py    ❌ READ ONLY
+├── kips_strategy_usdchf.py    ❌ READ ONLY
+├── kips_strategy_xagusd.py    ❌ READ ONLY
+└── kips_strategy_xauusd.py    ❌ READ ONLY
 ```
 
 ---
@@ -68,7 +68,7 @@ This file adapts the strategy logic for live MT5 trading and can be modified fre
 
 ### ❌ DON'T: Modify Strategy Files
 These files are READ-ONLY:
-- `strategies/sunrise_ogle_*.py` ❌ FORBIDDEN
+- `strategies/kips_strategy_*.py` ❌ FORBIDDEN
 
 If backtrader strategy needs changes, user must do it manually after verification.
 

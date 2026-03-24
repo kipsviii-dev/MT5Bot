@@ -1,6 +1,6 @@
 # Strategy Configuration Comparison
 
-This document serves as the "Source of Truth" for the configuration parameters of the Sunrise Ogle strategy across all traded assets.
+This document serves as the "Source of Truth" for the configuration parameters of the KIPS STRATEGY strategy across all traded assets.
 
 ## 📊 Core Asset Parameter Comparison
 
@@ -121,11 +121,11 @@ When a candle breaks the Failure Limit (without breaking the Entry Target):
 4.  **Next Step**: The strategy waits for the **NEXT** candle to begin searching for a new pullback pattern.
 
 ## 📂 Source Files
-- `mt5_live_trading_bot/strategies/sunrise_ogle_audusd.py`
-- `mt5_live_trading_bot/strategies/sunrise_ogle_eurusd.py`
-- `mt5_live_trading_bot/strategies/sunrise_ogle_gbpusd.py`
-- `mt5_live_trading_bot/strategies/sunrise_ogle_usdchf.py`
-- `mt5_live_trading_bot/strategies/sunrise_ogle_xagusd.py`
-- `mt5_live_trading_bot/strategies/sunrise_ogle_xauusd.py`
-- `mt5_live_trading_bot/strategies/sunrise_ogle_eurjpy.py`
-- `mt5_live_trading_bot/strategies/sunrise_ogle_usdjpy.py`
+- `mt5_live_trading_bot/strategies/kips_strategy_audusd.py`
+- `mt5_live_trading_bot/strategies/kips_strategy_eurusd.py`
+- `mt5_live_trading_bot/strategies/kips_strategy_gbpusd.py`
+- `mt5_live_trading_bot/strategies/kips_strategy_usdchf.py`
+- `mt5_live_trading_bot/strategies/kips_strategy_xagusd.py`
+- `mt5_live_trading_bot/strategies/kips_strategy_xauusd.py`
+- `mt5_live_trading_bot/strategies/kips_strategy_eurjpy.py`
+- `mt5_live_trading_bot/strategies/kips_strategy_usdjpy.py`
