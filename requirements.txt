@@ -9,6 +9,10 @@ pandas>=1.5.0                 # Data manipulation and analysis
 numpy>=1.24.0                 # Numerical computing
 
 # === CHARTING & VISUALIZATION ===
+# PRIMARY — TradingView-engine (interactive, real-time, zero full-re-renders)
+lightweight-charts>=2.0.0     # Lightweight Charts Python wrapper (recommended)
+
+# FALLBACK — used only when lightweight-charts is not installed
 matplotlib>=3.5.0             # Plotting library
 mplfinance>=0.12.0            # Financial charts and candlesticks
 

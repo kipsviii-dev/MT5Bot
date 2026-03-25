@@ -20,7 +20,15 @@ import importlib.util
 import queue
 import math
 
-# Try to import charting libraries
+# Try to import lightweight-charts (primary, preferred charting library)
+try:
+    from lightweight_charts import Chart as LWChart
+    LIGHTWEIGHT_CHARTS_AVAILABLE = True
+except ImportError:
+    LWChart = None  # type: ignore
+    LIGHTWEIGHT_CHARTS_AVAILABLE = False
+
+# Fallback: matplotlib (used only if lightweight-charts is not installed)
 try:
     import matplotlib.pyplot as plt
     from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
@@ -37,6 +45,9 @@ except ImportError:
     Figure = None  # type: ignore
     mdates = None  # type: ignore
     Rectangle = None  # type: ignore
+
+# Determine which charting engine is active
+CHART_ENGINE = "lightweight" if LIGHTWEIGHT_CHARTS_AVAILABLE else ("matplotlib" if MATPLOTLIB_AVAILABLE else "none")
 
 # Dynamic imports to avoid VS Code warnings
 def dynamic_import(module_name: str, package_name: Optional[str] = None):
@@ -82,19 +93,19 @@ if not sunrise_signal_adapter:
 # -------------------------------------------------------------------------------
 #
 # ECONOMIC SCENARIO HEDGING (8-asset portfolio):
-#   � Inflation hedges  ? XAUUSD (gold), XAGUSD (silver)
-#   � Deflation hedge   ? USDCHF (safe haven / CHF flight-to-quality)
-#   � Balanced forex    ? GBPUSD, EURUSD (liquid, tight spreads)
-#   � Commodity FX      ? AUDUSD (resource-driven economy)
-#   � JPY pairs         ? EURJPY, USDJPY (carry trade + BOJ sensitivity)
+#   � Inflation hedges  ? XAUUSD (gold), XAGUSD (silver)
+#   � Deflation hedge   ? USDCHF (safe haven / CHF flight-to-quality)
+#   � Balanced forex    ? GBPUSD, EURUSD (liquid, tight spreads)
+#   � Commodity FX      ? AUDUSD (resource-driven economy)
+#   � JPY pairs         ? EURJPY, USDJPY (carry trade + BOJ sensitivity)
 #
 # -- TRADING MODES --------------------------------------------------------------
-#   NORMAL     � Capital preservation focus.
+#   NORMAL     � Capital preservation focus.
 #                Per-trade risk: 1% of allocated capital.
 #                DD cap: starts at 40% (small acct), shrinks as balance grows.
 #                Layers: 1 concurrent position per symbol.
 #
-#   AGGRESSIVE � Maximum-growth focus (small-account bootstrapping).
+#   AGGRESSIVE � Maximum-growth focus (small-account bootstrapping).
 #                Per-trade risk: 3% of allocated capital.
 #                DD cap: starts at 60% (small acct), shrinks as balance grows.
 #                Layers: up to 3 concurrent positions per symbol.
@@ -103,19 +114,19 @@ if not sunrise_signal_adapter:
 #   The max drawdown % is NOT fixed. It scales DOWN as the account grows:
 #
 #   Logic:
-#     � Small account (= START_BALANCE): use the HIGH cap (40% / 60%)
+#     � Small account (= START_BALANCE): use the HIGH cap (40% / 60%)
 #       ? We need room to grow, tighter DD would be impractical on $100
-#     � Large account (= FLOOR_BALANCE): use the LOW floor cap (10% / 20%)
+#     � Large account (= FLOOR_BALANCE): use the LOW floor cap (10% / 20%)
 #       ? We have meaningful capital now; protect it aggressively
-#     � Between the two: linearly interpolate between HIGH and LOW cap
+#     � Between the two: linearly interpolate between HIGH and LOW cap
 #
-#   Example � NORMAL mode:
+#   Example � NORMAL mode:
 #     $100  balance ? DD cap = 40%  (high risk tolerance, building capital)
 #     $500  balance ? DD cap = 28%  (interpolated)
 #     $1000 balance ? DD cap = 18%  (interpolated)
 #     $2000 balance ? DD cap = 10%  (floor reached, full protection)
 #
-#   Example � AGGRESSIVE mode:
+#   Example � AGGRESSIVE mode:
 #     $100  balance ? DD cap = 60%  (max growth phase)
 #     $500  balance ? DD cap = 43%  (interpolated)
 #     $1000 balance ? DD cap = 30%  (interpolated)
@@ -130,24 +141,24 @@ if not sunrise_signal_adapter:
 TRADING_MODE_NORMAL     = "NORMAL"
 TRADING_MODE_AGGRESSIVE = "AGGRESSIVE"
 
-# Active trading mode � change this constant to switch modes globally.
+# Active trading mode � change this constant to switch modes globally.
 ACTIVE_TRADING_MODE = TRADING_MODE_NORMAL   # ? change to AGGRESSIVE for max-growth
 
 # -- Asset allocations (sum = 1.00) ----------------------------------------------
 ASSET_ALLOCATIONS = {
-    'USDCHF': 0.15,   # 15% � Deflation hedge (safe haven currency)
-    'XAUUSD': 0.15,   # 15% � Inflation hedge (gold)
-    'GBPUSD': 0.12,   # 12% � Standard forex
-    'EURUSD': 0.12,   # 12% � Standard forex
-    'XAGUSD': 0.12,   # 12% � Commodity / industrial metal (silver)
-    'AUDUSD': 0.10,   # 10% � Commodity currency
-    'EURJPY': 0.12,   # 12% � JPY cross (Asian session + carry)
-    'USDJPY': 0.12,   # 12% � JPY core pair (BOJ policy sensitivity)
+    'USDCHF': 0.15,   # 15% � Deflation hedge (safe haven currency)
+    'XAUUSD': 0.15,   # 15% � Inflation hedge (gold)
+    'GBPUSD': 0.12,   # 12% � Standard forex
+    'EURUSD': 0.12,   # 12% � Standard forex
+    'XAGUSD': 0.12,   # 12% � Commodity / industrial metal (silver)
+    'AUDUSD': 0.10,   # 10% � Commodity currency
+    'EURJPY': 0.12,   # 12% � JPY cross (Asian session + carry)
+    'USDJPY': 0.12,   # 12% � JPY core pair (BOJ policy sensitivity)
 }
 
 # -- Per-trade risk (% of allocated capital) -------------------------------------
-DEFAULT_RISK_PERCENT_NORMAL     = 0.01   # 1% � NORMAL mode
-DEFAULT_RISK_PERCENT_AGGRESSIVE = 0.03   # 3% � AGGRESSIVE mode
+DEFAULT_RISK_PERCENT_NORMAL     = 0.01   # 1% � NORMAL mode
+DEFAULT_RISK_PERCENT_AGGRESSIVE = 0.03   # 3% � AGGRESSIVE mode
 
 # -- Dynamic Drawdown Cap Configuration ------------------------------------------
 #   DD_CAP_HIGH  = starting cap for small accounts (= DD_SCALE_START_BALANCE)
@@ -155,23 +166,23 @@ DEFAULT_RISK_PERCENT_AGGRESSIVE = 0.03   # 3% � AGGRESSIVE mode
 #   Between the two balances: linearly interpolated
 
 # NORMAL mode DD cap range
-DD_CAP_HIGH_NORMAL   = 0.40   # 40% � starting cap at small balance ($100)
-DD_CAP_FLOOR_NORMAL  = 0.10   # 10% � floor cap once account is "large"
+DD_CAP_HIGH_NORMAL   = 0.40   # 40% � starting cap at small balance ($100)
+DD_CAP_FLOOR_NORMAL  = 0.10   # 10% � floor cap once account is "large"
 
 # AGGRESSIVE mode DD cap range
-DD_CAP_HIGH_AGGRESSIVE  = 0.60   # 60% � starting cap at small balance ($100)
-DD_CAP_FLOOR_AGGRESSIVE = 0.20   # 20% � floor cap once account is "large"
+DD_CAP_HIGH_AGGRESSIVE  = 0.60   # 60% � starting cap at small balance ($100)
+DD_CAP_FLOOR_AGGRESSIVE = 0.20   # 20% � floor cap once account is "large"
 
 # Balance thresholds that define the scaling range
-DD_SCALE_START_BALANCE = 100.0    # USD � below/at this: use HIGH cap
-DD_SCALE_FLOOR_BALANCE = 2000.0   # USD � above/at this: use FLOOR cap
+DD_SCALE_START_BALANCE = 100.0    # USD � below/at this: use HIGH cap
+DD_SCALE_FLOOR_BALANCE = 2000.0   # USD � above/at this: use FLOOR cap
 
 # Maximum simultaneous open risk across ALL positions (sum of individual risk_amounts)
-MAX_SIMULTANEOUS_RISK_PCT_NORMAL     = 0.06   #  6% of balance � NORMAL
-MAX_SIMULTANEOUS_RISK_PCT_AGGRESSIVE = 0.50   # 50% of balance � AGGRESSIVE
+MAX_SIMULTANEOUS_RISK_PCT_NORMAL     = 0.06   #  6% of balance � NORMAL
+MAX_SIMULTANEOUS_RISK_PCT_AGGRESSIVE = 0.50   # 50% of balance � AGGRESSIVE
 
 # Small-balance guard
-SMALL_BALANCE_THRESHOLD = 500.0   # USD � "small account" boundary
+SMALL_BALANCE_THRESHOLD = 500.0   # USD � "small account" boundary
 MIN_RISK_AMOUNT_USD     = 0.50    # Absolute minimum risk per trade in USD
 
 
@@ -211,7 +222,7 @@ def _get_mode_params(mode: str, balance: float = DD_SCALE_START_BALANCE):
     """Return (risk_pct, max_dd_pct, max_simultaneous_risk_pct) for the given
     mode and current account balance.
 
-    The max_dd_pct is dynamically computed based on balance � it starts high
+    The max_dd_pct is dynamically computed based on balance � it starts high
     for small accounts and shrinks as the account grows, protecting capital.
 
     Args:
@@ -530,8 +541,10 @@ class AdvancedMT5TradingMonitorGUI:
         self.right_notebook = ttk.Notebook(parent)
         self.right_notebook.pack(fill=tk.BOTH, expand=True)
         
-        # Charts tab
-        if MATPLOTLIB_AVAILABLE:
+        # Charts tab — use best available engine
+        if CHART_ENGINE == "lightweight":
+            self.create_charts_tab()
+        elif CHART_ENGINE == "matplotlib":
             self.create_charts_tab()
         else:
             self.create_no_charts_tab()
@@ -598,48 +611,182 @@ class AdvancedMT5TradingMonitorGUI:
         self.indicators_text.pack(fill=tk.BOTH, expand=True)
         
     def create_charts_tab(self):
-        """Create the live charts tab"""
+        """Create the live charts tab using lightweight-charts (primary) or matplotlib (fallback)"""
         charts_frame = ttk.Frame(self.right_notebook)
         self.right_notebook.add(charts_frame, text=" Live Charts")
-        
-        # Chart controls
+
+        # Chart controls toolbar
         control_frame = ttk.Frame(charts_frame)
         control_frame.pack(fill=tk.X, pady=(0, 5))
-        
+
         ttk.Label(control_frame, text="Chart Symbol:").pack(side=tk.LEFT)
         self.chart_symbol_var = tk.StringVar(value="EURUSD")
-        chart_symbol_combo = ttk.Combobox(control_frame, textvariable=self.chart_symbol_var, 
-                                         values=["EURUSD", "XAUUSD", "GBPUSD", "AUDUSD", "XAGUSD", "USDCHF", "EURJPY", "USDJPY"],
-                                         state="readonly", width=10)
+        chart_symbol_combo = ttk.Combobox(
+            control_frame, textvariable=self.chart_symbol_var,
+            values=["EURUSD", "XAUUSD", "GBPUSD", "AUDUSD", "XAGUSD", "USDCHF", "EURJPY", "USDJPY"],
+            state="readonly", width=10
+        )
         chart_symbol_combo.pack(side=tk.LEFT, padx=(5, 10))
         chart_symbol_combo.bind("<<ComboboxSelected>>", self.on_chart_symbol_change)
-        
+
         ttk.Button(control_frame, text="Refresh Chart", command=self.refresh_chart).pack(side=tk.LEFT)
-        
-        # Chart display
-        self.setup_chart(charts_frame)
-        
+
+        # Engine badge
+        engine_label = ttk.Label(
+            control_frame,
+            text=f"  Engine: {'Lightweight Charts (TradingView)' if LIGHTWEIGHT_CHARTS_AVAILABLE else 'Matplotlib (fallback)'}",
+            font=("Arial", 8), foreground="navy"
+        )
+        engine_label.pack(side=tk.RIGHT, padx=(0, 5))
+
+        # Chart area
+        self.chart_frame = charts_frame
+        if LIGHTWEIGHT_CHARTS_AVAILABLE:
+            self.setup_lightweight_chart(charts_frame)
+        else:
+            self.setup_chart(charts_frame)
+
     def create_no_charts_tab(self):
-        """Create a tab explaining chart requirements"""
+        """Create a tab shown when no charting library is installed"""
         no_charts_frame = ttk.Frame(self.right_notebook)
         self.right_notebook.add(no_charts_frame, text=" Charts (Unavailable)")
-        
-        info_label = ttk.Label(no_charts_frame, text="Charts require matplotlib and mplfinance libraries.\n\n"
-                                                    "Install with: pip install matplotlib mplfinance\n\n"
-                                                    "Strategy monitoring and configuration viewing are still available.",
-                              justify=tk.CENTER, font=("Arial", 11))
+
+        info_label = ttk.Label(
+            no_charts_frame,
+            text=(
+                "No charting library found.\n\n"
+                "Install the recommended engine:\n"
+                "  pip install lightweight-charts\n\n"
+                "Or the fallback engine:\n"
+                "  pip install matplotlib\n\n"
+                "Strategy monitoring and configuration viewing are still available."
+            ),
+            justify=tk.CENTER, font=("Arial", 11)
+        )
         info_label.pack(expand=True)
-        
+
+    def setup_lightweight_chart(self, parent):
+        """
+        Embed a Lightweight Charts (TradingView) window inside the Tkinter panel.
+        The chart opens as a floating window driven by the bot's data — zero re-render lag.
+        """
+        self._lw_chart: Optional[Any] = None  # Will hold the LWChart instance
+        self._lw_candlestick_series = None
+        self._lw_ema_series: dict = {}        # {name: line_series}
+        self._lw_markers: list = []           # buy/sell markers queued for next render
+
+        # Info label inside the Tkinter frame (chart opens in its own window)
+        info_frame = ttk.Frame(parent)
+        info_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+
+        ttk.Label(
+            info_frame,
+            text="Lightweight Charts (TradingView engine)",
+            font=("Arial", 12, "bold"), foreground="navy"
+        ).pack(pady=(20, 5))
+
+        ttk.Label(
+            info_frame,
+            text=(
+                "Real-time interactive chart opens in a separate window.\n"
+                "Features: Zoom, Pan, Scroll, EMA overlays, SL/TP lines,\n"
+                "Buy/Sell markers, Phase annotations — all live-updating\n"
+                "without full re-renders."
+            ),
+            font=("Arial", 10), justify=tk.CENTER
+        ).pack(pady=(0, 15))
+
+        self.lw_open_btn = ttk.Button(
+            info_frame, text="Open Live Chart Window",
+            command=self.open_lightweight_chart_window
+        )
+        self.lw_open_btn.pack(pady=5)
+
+        self.lw_status_label = ttk.Label(
+            info_frame, text="Chart: closed", font=("Arial", 9), foreground="gray"
+        )
+        self.lw_status_label.pack(pady=5)
+
+    def open_lightweight_chart_window(self):
+        """Launch the Lightweight Charts floating window and populate with current data."""
+        if not LIGHTWEIGHT_CHARTS_AVAILABLE or LWChart is None:
+            return
+        try:
+            # Create chart window
+            self._lw_chart = LWChart(title="Kips MT5 Bot - Live Chart", width=1200, height=700,
+                                     toolbox=True, inner_width=1, inner_height=0.8)
+            self._lw_chart.layout(background_color='#1a1a2e', text_color='#e0e0e0',
+                                  font_size=12, font_family='Arial')
+            self._lw_chart.grid(vert_enabled=True, horz_enabled=True)
+            self._lw_chart.crosshair(mode='normal')
+            self._lw_chart.time_scale(right_offset=10, min_bar_spacing=4)
+
+            # Candlestick series
+            self._lw_candlestick_series = self._lw_chart.candle_stick_series()
+            self._lw_candlestick_series.price_line(visible=True)
+
+            # EMA line series (one per EMA)
+            ema_styles = {
+                'EMA Confirm': ('#00ffff', 2),
+                'EMA Fast':    ('#ff4444', 1.5),
+                'EMA Medium':  ('#ff8800', 1.5),
+                'EMA Slow':    ('#44ff44', 1.5),
+                'EMA Filter':  ('#bb44ff', 1.5),
+            }
+            self._lw_ema_series = {}
+            for name, (color, width) in ema_styles.items():
+                series = self._lw_chart.create_line(name=name, color=color,
+                                                     width=width, price_line=False,
+                                                     price_label=False)
+                self._lw_ema_series[name] = series
+
+            # SL/TP horizontal price lines (stored for update)
+            self._lw_sl_long_line = self._lw_chart.horizontal_line(0, color='#ff4444',
+                                                                     width=1, style='dashed',
+                                                                     text='LONG SL', visible=False)
+            self._lw_tp_long_line = self._lw_chart.horizontal_line(0, color='#44ff44',
+                                                                     width=1, style='dashed',
+                                                                     text='LONG TP', visible=False)
+            self._lw_chart.show()
+            self.lw_status_label.config(text="Chart: open", foreground="green")
+
+            # Populate with current symbol data immediately
+            self.refresh_chart()
+
+        except Exception as e:
+            self.terminal_log(f"[X] Lightweight chart window error: {str(e)}", "ERROR")
+            self.lw_status_label.config(text=f"Chart error: {str(e)}", foreground="red")
+
+    def setup_chart(self, parent):
+        """Setup matplotlib chart (fallback when lightweight-charts is not installed)"""
+        if not MATPLOTLIB_AVAILABLE or Figure is None or FigureCanvasTkAgg is None:
+            return
+
+        self.fig = Figure(figsize=(12, 8), dpi=100)
+        self.ax = self.fig.add_subplot(111)
+        self.canvas = FigureCanvasTkAgg(self.fig, parent)
+
+        if NavigationToolbar2Tk is not None:
+            self.toolbar = NavigationToolbar2Tk(self.canvas, parent)
+            self.toolbar.update()
+            self.toolbar.pack(side=tk.TOP, fill=tk.X)
+
+        self.canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+        self.ax.set_title("Live Chart - Select Symbol")
+        self.ax.set_xlabel("Time")
+        self.ax.set_ylabel("Price")
+        self.fig.tight_layout()
+
     def create_terminal_tab(self):
         """Create the terminal output tab"""
         terminal_frame = ttk.Frame(self.right_notebook)
         self.right_notebook.add(terminal_frame, text=" Terminal Output")
-        
+
         # Terminal display
-        self.terminal_text = scrolledtext.ScrolledText(terminal_frame, height=25, font=("Consolas", 9), 
-                                                      bg="black", fg="green", insertbackground="white")
+        self.terminal_text = scrolledtext.ScrolledText(terminal_frame, height=25, font=("Consolas", 9),
+                                                       bg="black", fg="green", insertbackground="white")
         self.terminal_text.pack(fill=tk.BOTH, expand=True, pady=(0, 5))
-        
+
         # Configure terminal colors
         self.terminal_text.tag_config("NORMAL", foreground="white")
         self.terminal_text.tag_config("WAITING_PULLBACK", foreground="yellow")
@@ -648,11 +795,11 @@ class AdvancedMT5TradingMonitorGUI:
         self.terminal_text.tag_config("ERROR", foreground="red")
         self.terminal_text.tag_config("SUCCESS", foreground="lime")
         self.terminal_text.tag_config("INFO", foreground="lightblue")
-        
+
         # Terminal controls
         terminal_controls = ttk.Frame(terminal_frame)
         terminal_controls.pack(fill=tk.X)
-        
+
         ttk.Button(terminal_controls, text="Clear Terminal", command=self.clear_terminal).pack(side=tk.LEFT)
         ttk.Button(terminal_controls, text="Save Log", command=self.save_terminal_log).pack(side=tk.LEFT, padx=(5, 0))
         
@@ -674,35 +821,7 @@ class AdvancedMT5TradingMonitorGUI:
         
         self.markers_tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         scrollbar_markers.pack(side=tk.RIGHT, fill=tk.Y)
-        
-    def setup_chart(self, parent):
-        """Setup matplotlib chart with standard navigation toolbar"""
-        if not MATPLOTLIB_AVAILABLE or Figure is None or FigureCanvasTkAgg is None:
-            return
-            
-        # Create figure and axis
-        self.fig = Figure(figsize=(12, 8), dpi=100)
-        self.ax = self.fig.add_subplot(111)
-        
-        # Create canvas
-        self.canvas = FigureCanvasTkAgg(self.fig, parent)
-        
-        # Add standard Matplotlib navigation toolbar BEFORE packing canvas
-        # This provides: Home, Back, Forward, Pan, Zoom, Configure, Save
-        if NavigationToolbar2Tk is not None:
-            self.toolbar = NavigationToolbar2Tk(self.canvas, parent)
-            self.toolbar.update()
-            self.toolbar.pack(side=tk.TOP, fill=tk.X)
-        
-        # Pack canvas AFTER toolbar so toolbar appears on top
-        self.canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=True)
-        
-        # Initialize empty chart
-        self.ax.set_title("Live Chart - Select Symbol")
-        self.ax.set_xlabel("Time")
-        self.ax.set_ylabel("Price")
-        self.fig.tight_layout()
-    
+
     def create_status_bar(self):
         """Create the status bar at the bottom"""
         self.status_frame = ttk.Frame(self.root)
@@ -926,11 +1045,11 @@ class AdvancedMT5TradingMonitorGUI:
             confirmed = messagebox.askyesno(
                 "? AGGRESSIVE Mode",
                 "You are switching to AGGRESSIVE mode.\n\n"
-                "� Risk per trade: 3% of allocated capital\n"
-                f"� Max drawdown at ${DD_SCALE_START_BALANCE:.0f} balance: {DD_CAP_HIGH_AGGRESSIVE*100:.0f}%\n"
-                f"� Max drawdown at ${DD_SCALE_FLOOR_BALANCE:.0f}+ balance: {DD_CAP_FLOOR_AGGRESSIVE*100:.0f}%\n"
-                "� DD cap DECREASES automatically as your balance grows\n"
-                "� Up to 3 simultaneous positions per symbol\n\n"
+                "� Risk per trade: 3% of allocated capital\n"
+                f"� Max drawdown at ${DD_SCALE_START_BALANCE:.0f} balance: {DD_CAP_HIGH_AGGRESSIVE*100:.0f}%\n"
+                f"� Max drawdown at ${DD_SCALE_FLOOR_BALANCE:.0f}+ balance: {DD_CAP_FLOOR_AGGRESSIVE*100:.0f}%\n"
+                "� DD cap DECREASES automatically as your balance grows\n"
+                "� Up to 3 simultaneous positions per symbol\n\n"
                 "This mode is designed for small-account bootstrapping.\n"
                 "The more you profit, the tighter the protection becomes.\n\n"
                 "Are you sure you want to continue?",
@@ -964,13 +1083,13 @@ class AdvancedMT5TradingMonitorGUI:
         """Compute the Dalio risk amount for a single trade, fully mode-aware.
 
         Returns a dict with:
-            allocation_pct   � asset's portfolio weight
-            allocated_usd    � balance � allocation_pct
-            risk_pct         � per-trade risk % of allocated capital
-            risk_amount      � USD amount to risk on this trade
-            mode             � active trading mode
-            balance          � input balance (for logging)
-            small_balance    � True if balance < SMALL_BALANCE_THRESHOLD
+            allocation_pct   � asset's portfolio weight
+            allocated_usd    � balance � allocation_pct
+            risk_pct         � per-trade risk % of allocated capital
+            risk_amount      � USD amount to risk on this trade
+            mode             � active trading mode
+            balance          � input balance (for logging)
+            small_balance    � True if balance < SMALL_BALANCE_THRESHOLD
         """
         mode = override_mode or self.get_active_trading_mode()
         risk_pct, max_dd_pct, _ = _get_mode_params(mode, balance)
@@ -999,7 +1118,7 @@ class AdvancedMT5TradingMonitorGUI:
             risk_amount = MIN_RISK_AMOUNT_USD
             risk_pct = risk_amount / allocated_usd if allocated_usd > 0 else risk_pct
 
-        # 5. Hard cap: single trade risk_amount must never exceed max_dd_pct � balance.
+        # 5. Hard cap: single trade risk_amount must never exceed max_dd_pct � balance.
         #    (Dynamic DD cap already shrinks as balance grows via _get_mode_params.)
         single_trade_cap = balance * max_dd_pct
         if risk_amount > single_trade_cap:
@@ -1026,7 +1145,7 @@ class AdvancedMT5TradingMonitorGUI:
           AGGRESSIVE: 60% at $100  ?  20% at $2,000+
         """
         if not mt5 or not self.mt5_connected:
-            return True  # Can't check � allow (fail-open)
+            return True  # Can't check � allow (fail-open)
 
         try:
             account_info = mt5.account_info()  # type: ignore
@@ -1056,7 +1175,7 @@ class AdvancedMT5TradingMonitorGUI:
             if current_dd >= max_dd_pct:
                 self.terminal_log(
                     f"?? DRAWDOWN GUARD [{mode}]: Current DD {current_dd*100:.1f}% = "
-                    f"Dynamic Cap {max_dd_pct*100:.1f}% � ALL new entries BLOCKED",
+                    f"Dynamic Cap {max_dd_pct*100:.1f}% � ALL new entries BLOCKED",
                     "ERROR", critical=True
                 )
                 return False   # Block
@@ -1080,7 +1199,7 @@ class AdvancedMT5TradingMonitorGUI:
             _, _, max_sim_risk_pct = _get_mode_params(mode, balance)
             max_risk_usd = balance * max_sim_risk_pct
 
-            # Sum risk already at stake (SL distance � volume � value_per_point)
+            # Sum risk already at stake (SL distance � volume � value_per_point)
             all_positions = mt5.positions_get()  # type: ignore
             existing_risk = 0.0
             if all_positions:
@@ -1099,7 +1218,7 @@ class AdvancedMT5TradingMonitorGUI:
                 self.terminal_log(
                     f"? SIMULTANEOUS RISK GUARD [{mode}]: Projected risk "
                     f"${projected_total:.2f} > Max ${max_risk_usd:.2f} "
-                    f"({max_sim_risk_pct*100:.0f}% of ${balance:.2f}) � Entry BLOCKED",
+                    f"({max_sim_risk_pct*100:.0f}% of ${balance:.2f}) � Entry BLOCKED",
                     "WARNING", critical=True
                 )
                 return False
@@ -1837,7 +1956,7 @@ class AdvancedMT5TradingMonitorGUI:
                     }
                     
                     # AUTO-REFRESH CHART: Update chart if this symbol is currently displayed
-                    if MATPLOTLIB_AVAILABLE and self.chart_symbol_var.get() == symbol:
+                    if CHART_ENGINE != "none" and self.chart_symbol_var.get() == symbol:
                         self.root.after(0, self.refresh_chart)  # Thread-safe GUI update
                     
                     # Update state timestamp
@@ -1938,8 +2057,10 @@ class AdvancedMT5TradingMonitorGUI:
                 'indicators': indicators,
                 'timestamp': datetime.now()
             }
-            
-        except Exception as e:
+
+            # AUTO-REFRESH CHART: Update chart if this symbol is currently displayed
+            if CHART_ENGINE != "none" and self.chart_symbol_var.get() == symbol:
+                self.root.after(0, self.refresh_chart)  # Thread-safe GUI update
             self.terminal_log(f"[X] {symbol} monitoring error: {str(e)}", "ERROR")
     
     # ==========
@@ -2092,14 +2213,14 @@ class AdvancedMT5TradingMonitorGUI:
             # Check range
             if angle < min_angle or angle > max_angle:
                 self.terminal_log(
-                    f"[X] {symbol} {direction}: Angle {angle:.2f}� outside range [{min_angle:.1f}�, {max_angle:.1f}�]", 
+                    f"[X] {symbol} {direction}: Angle {angle:.2f}� outside range [{min_angle:.1f}�, {max_angle:.1f}�]", 
                     "WARNING", critical=True
                 )
                 return False
             
             # Log angle value when passing (v1.2.1 enhancement)
             self.terminal_log(
-                f"   ?? {symbol}: Angle={angle:.2f}� (range [{min_angle:.1f}�, {max_angle:.1f}�]) ? ? PASS", 
+                f"   ?? {symbol}: Angle={angle:.2f}� (range [{min_angle:.1f}�, {max_angle:.1f}�]) ? ? PASS", 
                 "INFO", critical=True
             )
             return True
@@ -4096,204 +4217,287 @@ class AdvancedMT5TradingMonitorGUI:
                 self.markers_tree.insert("", tk.END, values=values)
                 
     def refresh_chart(self):
-        """Refresh the current chart with candlesticks"""
-        if not MATPLOTLIB_AVAILABLE:
+        """Refresh the current chart — routes to the active engine (lightweight-charts or matplotlib)."""
+        if CHART_ENGINE == "lightweight":
+            self._refresh_lightweight_chart()
+        elif CHART_ENGINE == "matplotlib":
+            self._refresh_matplotlib_chart()
+        # else: no chart engine available — do nothing
+
+    # ------------------------------------------------------------------
+    # LIGHTWEIGHT-CHARTS (TradingView engine) — primary path
+    # ------------------------------------------------------------------
+    def _refresh_lightweight_chart(self):
+        """Push live MT5 data into the Lightweight Charts floating window."""
+        if not LIGHTWEIGHT_CHARTS_AVAILABLE or self._lw_chart is None:
+            # Chart window not open yet — silently skip (user opens it manually)
             return
-            
+
         symbol = self.chart_symbol_var.get()
         if symbol not in self.chart_data:
-            self.terminal_log(f" No chart data available for {symbol}", "ERROR")
             return
-            
+
         try:
             chart_info = self.chart_data[symbol]
             df = chart_info['df']
             indicators = chart_info['indicators']
-            
+            config = self.strategy_configs.get(symbol, {})
+            state = self.strategy_states.get(symbol, {})
+
+            if pd is None or df is None or len(df) == 0:
+                return
+
+            # ── 1. Convert broker time → UTC ───────────────────────────
+            df_utc = df.copy()
+            df_utc['time'] = pd.to_datetime(df_utc['time']) - timedelta(hours=self.broker_utc_offset)
+
+            # ── 2. Build OHLCV list for Lightweight Charts ──────────────
+            # Expected format: list of dicts with keys: time, open, high, low, close
+            candles = []
+            for _, row in df_utc.iterrows():
+                candles.append({
+                    'time': int(row['time'].timestamp()),
+                    'open': float(row['open']),
+                    'high': float(row['high']),
+                    'low':  float(row['low']),
+                    'close': float(row['close']),
+                })
+
+            if self._lw_candlestick_series is not None:
+                self._lw_candlestick_series.set(candles)
+
+            # ── 3. EMA overlays ─────────────────────────────────────────
+            def _safe_period(raw_val: Any, default: int) -> int:
+                """Convert a possibly-None extract_numeric_value result to a safe int."""
+                try:
+                    v = int(raw_val or default)
+                    return v if v > 0 else default
+                except (TypeError, ValueError):
+                    return default
+
+            ema_configs = {
+                'EMA Confirm': _safe_period(self.extract_numeric_value(config.get('ema_confirm_length',      config.get('Confirmation EMA Period', '1'))),   1),
+                'EMA Fast':    _safe_period(self.extract_numeric_value(config.get('ema_fast_length',          config.get('Fast EMA Period',         '18'))),  18),
+                'EMA Medium':  _safe_period(self.extract_numeric_value(config.get('ema_medium_length',        config.get('Medium EMA Period',       '18'))),  18),
+                'EMA Slow':    _safe_period(self.extract_numeric_value(config.get('ema_slow_length',          config.get('Slow EMA Period',         '24'))),  24),
+                'EMA Filter':  _safe_period(self.extract_numeric_value(config.get('ema_filter_price_length',  config.get('Price Filter EMA Period', '100'))), 100),
+            }
+
+            for ema_name, period in ema_configs.items():
+                if period < 1:
+                    continue
+                min_bars = int(period * 3)
+                if len(df_utc) < min_bars:
+                    continue
+                ema_vals = df_utc['close'].ewm(span=period, adjust=False).mean()
+                ema_data = [
+                    {'time': int(df_utc['time'].iloc[i].timestamp()), 'value': float(ema_vals.iloc[i])}
+                    for i in range(min_bars, len(df_utc))
+                ]
+                series = self._lw_ema_series.get(ema_name)
+                if series is not None and ema_data:
+                    series.set(ema_data)
+
+            # ── 4. SL / TP price lines ──────────────────────────────────
+            atr = indicators.get('atr')
+            if atr and atr != 'N/A' and isinstance(atr, (int, float)) and atr > 0:
+                sl_mult_long = float(self.extract_float_value(config.get('long_atr_sl_multiplier',  config.get('LONG ATR SL Multiplier',  '3.0')))  or 3.0)
+                tp_mult_long = float(self.extract_float_value(config.get('long_atr_tp_multiplier',  config.get('LONG ATR TP Multiplier',  '10.0'))) or 10.0)
+
+                last_low  = float(df_utc['low'].iloc[-1])
+                last_high = float(df_utc['high'].iloc[-1])
+
+                sl_long = last_low  - atr * sl_mult_long
+                tp_long = last_high + atr * tp_mult_long
+
+                if self._lw_sl_long_line is not None:
+                    try:
+                        self._lw_sl_long_line.update(sl_long)
+                        self._lw_sl_long_line.visible(True)
+                    except Exception:
+                        pass
+                if self._lw_tp_long_line is not None:
+                    try:
+                        self._lw_tp_long_line.update(tp_long)
+                        self._lw_tp_long_line.visible(True)
+                    except Exception:
+                        pass
+
+            # ── 5. Buy / Sell markers for phase transitions ─────────────
+            markers = []
+            phase = state.get('phase', 'SCANNING')
+            current_time_ts = int(df_utc['time'].iloc[-1].timestamp())
+            current_close   = float(df_utc['close'].iloc[-1])
+
+            if phase in ('ARMED_LONG', 'WAITING_BREAKOUT') and state.get('armed_direction') == 'LONG':
+                markers.append({
+                    'time': current_time_ts,
+                    'position': 'belowBar',
+                    'color': '#00ff88',
+                    'shape': 'arrowUp',
+                    'text': f'LONG Armed\n{symbol}',
+                })
+            elif phase in ('ARMED_SHORT', 'WAITING_BREAKOUT') and state.get('armed_direction') == 'SHORT':
+                markers.append({
+                    'time': current_time_ts,
+                    'position': 'aboveBar',
+                    'color': '#ff4444',
+                    'shape': 'arrowDown',
+                    'text': f'SHORT Armed\n{symbol}',
+                })
+
+            if self._lw_candlestick_series is not None and markers:
+                try:
+                    self._lw_candlestick_series.markers(markers)
+                except Exception:
+                    pass
+
+            # ── 6. Update chart title watermark ─────────────────────────
+            try:
+                self._lw_chart.watermark(
+                    f'{symbol}  |  Phase: {phase}  |  '
+                    f'ATR: {atr:.6f}' if isinstance(atr, float) else f'{symbol}  |  Phase: {phase}'
+                )
+            except Exception:
+                pass
+
+            self.terminal_log(
+                f" [LW Chart] {symbol} refreshed — {len(candles)} candles, phase={phase}", "NORMAL"
+            )
+
+        except Exception as e:
+            self.terminal_log(f"[X] Lightweight chart refresh error: {str(e)}", "ERROR")
+
+    # ------------------------------------------------------------------
+    # MATPLOTLIB (fallback) — secondary path
+    # ------------------------------------------------------------------
+    def _refresh_matplotlib_chart(self):
+        """Refresh the matplotlib chart (fallback engine)."""
+        if not MATPLOTLIB_AVAILABLE:
+            return
+
+        symbol = self.chart_symbol_var.get()
+        if symbol not in self.chart_data:
+            self.terminal_log(f" No chart data available for {symbol}", "ERROR")
+            return
+
+        try:
+            chart_info = self.chart_data[symbol]
+            df = chart_info['df']
+            indicators = chart_info['indicators']
+
             # Clear previous plot
             self.ax.clear()
-            
+
             # Visualization Layer: Convert Broker Time to UTC
             df_local = df.copy()
             if pd is not None:
                 df_local['time'] = pd.to_datetime(df['time'])  # type: ignore
-                # Adjust for timezone offset (subtract broker offset to get UTC)
                 df_local['time'] = df_local['time'] - timedelta(hours=self.broker_utc_offset)
             else:
                 return
-            
+
             # Create candlestick chart
             self.plot_candlesticks(self.ax, df_local)
-            
-            # Plot EMAs with actual periods from config
+
+            # Get EMA periods from strategy config (with safe None-fallback)
             config = self.strategy_configs.get(symbol, {})
-            
-            # Get actual EMA periods from strategy configuration
-            fast_period = self.extract_numeric_value(config.get('ema_fast_length', config.get('Fast EMA Period', '18')))
-            medium_period = self.extract_numeric_value(config.get('ema_medium_length', config.get('Medium EMA Period', '18')))
-            slow_period = self.extract_numeric_value(config.get('ema_slow_length', config.get('Slow EMA Period', '24')))
-            confirm_period = self.extract_numeric_value(config.get('ema_confirm_length', config.get('Confirmation EMA Period', '1')))
-            filter_period = self.extract_numeric_value(config.get('ema_filter_price_length', config.get('Price Filter EMA Period', '100')))
-            
-            # Plot ALL EMAs with asset-specific periods
-            # CRITICAL: Use adjust=False to match MT5 EMA calculation
-            # CRITICAL: Only plot from point where EMA stabilizes (3x period minimum)
-            
-            # 1. Confirm EMA (most important for crossovers)
-            min_bars_confirm = int(confirm_period * 3)  # Need 3x period to stabilize
-            if len(df_local) >= min_bars_confirm:
-                ema_confirm = df_local['close'].ewm(span=confirm_period, adjust=False).mean()
-                # Only plot from stabilization point
-                self.ax.plot(df_local['time'].iloc[min_bars_confirm:], 
-                           ema_confirm.iloc[min_bars_confirm:], 
-                           label=f'EMA Confirm ({int(confirm_period)})', 
-                           color='cyan', alpha=0.9, linewidth=2, linestyle='-')
-            
-            # 2. Fast EMA
-            min_bars_fast = int(fast_period * 3)
-            if len(df_local) >= min_bars_fast:
-                ema_fast = df_local['close'].ewm(span=fast_period, adjust=False).mean()
-                self.ax.plot(df_local['time'].iloc[min_bars_fast:], 
-                           ema_fast.iloc[min_bars_fast:], 
-                           label=f'EMA Fast ({int(fast_period)})', 
-                           color='red', alpha=0.8, linewidth=1.5)
-            
-            # 3. Medium EMA
-            min_bars_medium = int(medium_period * 3)
-            if len(df_local) >= min_bars_medium:
-                ema_medium = df_local['close'].ewm(span=medium_period, adjust=False).mean()
-                self.ax.plot(df_local['time'].iloc[min_bars_medium:], 
-                           ema_medium.iloc[min_bars_medium:], 
-                           label=f'EMA Medium ({int(medium_period)})', 
-                           color='orange', alpha=0.8, linewidth=1.5)
-            
-            # 4. Slow EMA
-            min_bars_slow = int(slow_period * 3)
-            if len(df_local) >= min_bars_slow:
-                ema_slow = df_local['close'].ewm(span=slow_period, adjust=False).mean()
-                self.ax.plot(df_local['time'].iloc[min_bars_slow:], 
-                           ema_slow.iloc[min_bars_slow:], 
-                           label=f'EMA Slow ({int(slow_period)})', 
-                           color='green', alpha=0.8, linewidth=1.5)
-            
-            # 5. Filter EMA (trend filter)
-            min_bars_filter = int(filter_period * 3)  # EMA(70) needs ~210 bars
-            if len(df_local) >= min_bars_filter:
-                ema_filter = df_local['close'].ewm(span=filter_period, adjust=False).mean()
-                self.ax.plot(df_local['time'].iloc[min_bars_filter:], 
-                           ema_filter.iloc[min_bars_filter:], 
-                           label=f'EMA Filter ({int(filter_period)})', 
-                           color='purple', alpha=0.7, linewidth=1.5, linestyle='-')
-            
-            # Mark current phase
-            state = self.strategy_states[symbol]
-            phase_colors = {
-                'NORMAL': 'lightgray',
-                'WAITING_PULLBACK': 'yellow',
-                'WAITING_BREAKOUT': 'orange'
-            }
-            phase_color = phase_colors.get(state['phase'], 'lightgray')
-            
-            # Add phase indicator as background
+
+            def _sp(raw: Any, default: int) -> int:
+                """Safe period conversion — guards against extract_numeric_value returning None."""
+                try:
+                    v = int(raw or default)
+                    return v if v > 0 else default
+                except (TypeError, ValueError):
+                    return default
+
+            fast_period    = _sp(self.extract_numeric_value(config.get('ema_fast_length',         config.get('Fast EMA Period',         '18'))),  18)
+            medium_period  = _sp(self.extract_numeric_value(config.get('ema_medium_length',       config.get('Medium EMA Period',       '18'))),  18)
+            slow_period    = _sp(self.extract_numeric_value(config.get('ema_slow_length',         config.get('Slow EMA Period',         '24'))),  24)
+            confirm_period = _sp(self.extract_numeric_value(config.get('ema_confirm_length',      config.get('Confirmation EMA Period', '1'))),    1)
+            filter_period  = _sp(self.extract_numeric_value(config.get('ema_filter_price_length', config.get('Price Filter EMA Period', '100'))), 100)
+
+            ema_defs = [
+                (confirm_period, f'EMA Confirm ({confirm_period})', 'cyan',   2.0),
+                (fast_period,    f'EMA Fast ({fast_period})',       'red',    1.5),
+                (medium_period,  f'EMA Medium ({medium_period})',   'orange', 1.5),
+                (slow_period,    f'EMA Slow ({slow_period})',       'green',  1.5),
+                (filter_period,  f'EMA Filter ({filter_period})',   'purple', 1.5),
+            ]
+            for period, label, color, lw in ema_defs:
+                min_bars = int(period * 3)
+                if len(df_local) >= min_bars:
+                    ema_vals = df_local['close'].ewm(span=period, adjust=False).mean()
+                    self.ax.plot(df_local['time'].iloc[min_bars:], ema_vals.iloc[min_bars:],
+                                 label=label, color=color, alpha=0.85, linewidth=lw)
+
+            # Phase indicator
+            state = self.strategy_states.get(symbol, {})
+            phase_colors = {'SCANNING': 'lightgray', 'WAITING_PULLBACK': 'yellow', 'WAITING_BREAKOUT': 'orange'}
+            phase_color = phase_colors.get(state.get('phase', 'SCANNING'), 'lightgray')
             current_price = indicators.get('current_price', df_local['close'].iloc[-1])
-            self.ax.axhspan(current_price * 0.9999, current_price * 1.0001, 
-                          color=phase_color, alpha=0.3, 
-                          label=f'Phase: {state["phase"]}')
-            
-            # Mark pullback phase with special indicators
-            if state['phase'] == 'WAITING_PULLBACK':
+            self.ax.axhspan(current_price * 0.9999, current_price * 1.0001,
+                            color=phase_color, alpha=0.3, label=f'Phase: {state.get("phase", "?")}')
+
+            if state.get('phase') == 'WAITING_PULLBACK':
                 pullback_count = state.get('pullback_candle_count', 0)
-                self.ax.text(0.02, 0.98, f'Pullback Count: {pullback_count}', 
-                           transform=self.ax.transAxes, fontsize=10, 
-                           bbox=dict(boxstyle="round,pad=0.3", facecolor="yellow", alpha=0.7),
-                           verticalalignment='top')
-                           
-            elif state['phase'] == 'WAITING_BREAKOUT':
+                self.ax.text(0.02, 0.98, f'Pullback Count: {pullback_count}',
+                             transform=self.ax.transAxes, fontsize=10,
+                             bbox=dict(boxstyle="round,pad=0.3", facecolor="yellow", alpha=0.7),
+                             verticalalignment='top')
+            elif state.get('phase') == 'WAITING_BREAKOUT':
                 breakout_level = state.get('breakout_level', current_price)
                 if breakout_level:
-                    self.ax.axhline(y=breakout_level, color='red', linestyle='--', 
-                                  alpha=0.8, label=f'Breakout Level: {breakout_level:.5f}')
-            
-            # NEW: Add ATR SL/TP levels visualization
+                    self.ax.axhline(y=breakout_level, color='red', linestyle='--',
+                                    alpha=0.8, label=f'Breakout Level: {breakout_level:.5f}')
+
+            # ATR SL/TP levels
             atr = indicators.get('atr')
             if atr and atr != 'N/A' and isinstance(atr, (int, float)) and atr > 0:
-                # Get asset-specific ATR multipliers from config
-                sl_multiplier_long = self.extract_float_value(config.get('long_atr_sl_multiplier', 
-                                                              config.get('LONG ATR SL Multiplier', '3.0')))
-               
-                tp_multiplier_long = self.extract_float_value(config.get('long_atr_tp_multiplier', 
-                                                              config.get('LONG ATR TP Multiplier', '10.0')))
-                sl_multiplier_short = self.extract_float_value(config.get('short_atr_sl_multiplier', 
-                                                               config.get('SHORT ATR SL Multiplier', '3.0')))
-                tp_multiplier_short = self.extract_float_value(config.get('short_atr_tp_multiplier', 
-                                                               config.get('SHORT ATR TP Multiplier', '8.0')))
-                
-                # Calculate LONG levels (using last low/high from df)
-                last_low = df_local['low'].iloc[-1]
+                sl_mult_long  = float(self.extract_float_value(config.get('long_atr_sl_multiplier',  config.get('LONG ATR SL Multiplier',  '3.0')))  or 3.0)
+                tp_mult_long  = float(self.extract_float_value(config.get('long_atr_tp_multiplier',  config.get('LONG ATR TP Multiplier',  '10.0'))) or 10.0)
+                sl_mult_short = float(self.extract_float_value(config.get('short_atr_sl_multiplier', config.get('SHORT ATR SL Multiplier', '3.0')))  or 3.0)
+                tp_mult_short = float(self.extract_float_value(config.get('short_atr_tp_multiplier', config.get('SHORT ATR TP Multiplier', '8.0')))  or 8.0)
+
+                last_low  = df_local['low'].iloc[-1]
                 last_high = df_local['high'].iloc[-1]
-                
-                sl_level_long = last_low - (atr * sl_multiplier_long)
-                tp_level_long = last_high + (atr * tp_multiplier_long)
-                
-                # Calculate SHORT levels
-                sl_level_short = last_high + (atr * sl_multiplier_short)
-                tp_level_short = last_low - (atr * tp_multiplier_short)
-                
-                # Plot LONG levels (green zone)
-                self.ax.axhline(y=sl_level_long, color='green', linestyle=':', 
-                              alpha=0.5, linewidth=1.5, label=f'LONG SL: {sl_level_long:.5f}')
-                self.ax.axhline(y=tp_level_long, color='lime', linestyle=':', 
-                              alpha=0.5, linewidth=1.5, label=f'LONG TP: {tp_level_long:.5f}')
-                
-                # Check if SHORT trades are enabled before showing SHORT levels
-                config = self.strategy_configs.get(symbol, {})
+                sl_long  = last_low  - atr * sl_mult_long
+                tp_long  = last_high + atr * tp_mult_long
+                sl_short = last_high + atr * sl_mult_short
+                tp_short = last_low  - atr * tp_mult_short
+
+                self.ax.axhline(y=sl_long, color='green',   linestyle=':', alpha=0.5, linewidth=1.5, label=f'LONG SL: {sl_long:.5f}')
+                self.ax.axhline(y=tp_long, color='lime',    linestyle=':', alpha=0.5, linewidth=1.5, label=f'LONG TP: {tp_long:.5f}')
+
                 short_enabled = config.get('ENABLE_SHORT_TRADES', 'False')
                 if isinstance(short_enabled, str):
                     short_enabled = short_enabled.lower() in ('true', '1', 'yes')
-                
-                # Only plot SHORT levels if SHORT trades are enabled
                 if short_enabled:
-                    self.ax.axhline(y=sl_level_short, color='red', linestyle=':', 
-                                  alpha=0.5, linewidth=1.5, label=f'SHORT SL: {sl_level_short:.5f}')
-                    self.ax.axhline(y=tp_level_short, color='darkred', linestyle=':', 
-                                  alpha=0.5, linewidth=1.5, label=f'SHORT TP: {tp_level_short:.5f}')
-                
-                # Add ATR indicator box on chart
-                if short_enabled:
-                    atr_text = (f'ATR: {atr:.6f}\n'
-                               f'LONG: SL={sl_multiplier_long:.1f}x TP={tp_multiplier_long:.1f}x\n'
-                               f'SHORT: SL={sl_multiplier_short:.1f}x TP={tp_multiplier_short:.1f}x')
-                else:
-                    atr_text = (f'ATR: {atr:.6f}\n'
-                               f'LONG: SL={sl_multiplier_long:.1f}x TP={tp_multiplier_long:.1f}x')
-                
-                self.ax.text(0.98, 0.02, atr_text, 
-                           transform=self.ax.transAxes, fontsize=8,
-                           bbox=dict(boxstyle="round,pad=0.5", facecolor="lightblue", alpha=0.7),
-                           verticalalignment='bottom', horizontalalignment='right')
-            
-            # Formatting
-            self.ax.set_title(f'{symbol} - Live Candlestick Chart with ATR SL/TP (Phase: {state["phase"]})')
+                    self.ax.axhline(y=sl_short, color='red',     linestyle=':', alpha=0.5, linewidth=1.5, label=f'SHORT SL: {sl_short:.5f}')
+                    self.ax.axhline(y=tp_short, color='darkred', linestyle=':', alpha=0.5, linewidth=1.5, label=f'SHORT TP: {tp_short:.5f}')
+
+                atr_text = (f'ATR: {atr:.6f}\nLONG: SL={sl_mult_long:.1f}x TP={tp_mult_long:.1f}x'
+                            + (f'\nSHORT: SL={sl_mult_short:.1f}x TP={tp_mult_short:.1f}x' if short_enabled else ''))
+                self.ax.text(0.98, 0.02, atr_text, transform=self.ax.transAxes, fontsize=8,
+                             bbox=dict(boxstyle="round,pad=0.5", facecolor="lightblue", alpha=0.7),
+                             verticalalignment='bottom', horizontalalignment='right')
+
+            self.ax.set_title(f'{symbol} - Live Chart (Phase: {state.get("phase", "?")})')
             self.ax.set_xlabel('Time (UTC)')
             self.ax.set_ylabel('Price')
             self.ax.legend(loc='upper left', fontsize=7, ncol=2)
             self.ax.grid(True, alpha=0.3)
-            
-            # Format time axis
             if mdates is not None:
                 self.ax.xaxis.set_major_formatter(mdates.DateFormatter('%H:%M'))  # type: ignore
             self.ax.tick_params(axis='x', rotation=45, labelsize=8)
-            
-            # Set reasonable y-axis limits
             price_range = df_local['high'].max() - df_local['low'].min()
-            y_margin = price_range * 0.02  # 2% margin
+            y_margin = price_range * 0.02
             self.ax.set_ylim(df_local['low'].min() - y_margin, df_local['high'].max() + y_margin)
-            
             self.fig.tight_layout()
             self.canvas.draw()
-            
-            self.terminal_log(f" Candlestick chart refreshed for {symbol} (Phase: {state['phase']})", "NORMAL")
-            
+
+            self.terminal_log(f" [MPL Chart] {symbol} refreshed (Phase: {state.get('phase', '?')})", "NORMAL")
+
         except Exception as e:
             self.terminal_log(f"[X] Chart refresh error: {str(e)}", "ERROR")
             
@@ -4526,21 +4730,21 @@ class AdvancedMT5TradingMonitorGUI:
             
     # Event handlers
     def on_strategy_phase_select(self, event):
-        """Handle strategy phase selection"""
+        """Handle strategy phase selection — updates config, indicators and chart."""
         selection = self.phases_tree.selection()
         if not selection:
             return
-            
+
         item = self.phases_tree.item(selection[0])
         symbol = item['values'][0]
-        
+
         # Update symbol selector
         self.symbol_var.set(symbol)
         self.on_symbol_config_select(None)
-        
-        # Update chart symbol
+
+        # Update chart symbol and refresh the active chart engine
         self.chart_symbol_var.set(symbol)
-        if MATPLOTLIB_AVAILABLE:
+        if CHART_ENGINE != "none":
             self.refresh_chart()
             
     def on_symbol_config_select(self, event):
@@ -4568,8 +4772,8 @@ class AdvancedMT5TradingMonitorGUI:
         self.update_indicators_display()
         
     def on_chart_symbol_change(self, event):
-        """Handle chart symbol change"""
-        if MATPLOTLIB_AVAILABLE:
+        """Handle chart symbol change — refreshes the active chart engine."""
+        if CHART_ENGINE != "none":
             self.refresh_chart()
             
     def toggle_connection(self):
@@ -4679,7 +4883,7 @@ class AdvancedMT5TradingMonitorGUI:
 
             # -- 1. Portfolio-level drawdown guard -----------------------------
             if not self.check_portfolio_drawdown_guard(balance):
-                return False   # Max drawdown reached � block all entries
+                return False   # Max drawdown reached � block all entries
 
             # -- 2. Compute risk amount via centralized Dalio engine -----------
             risk_info = self.calculate_dalio_risk_amount(symbol, balance)
@@ -4703,7 +4907,7 @@ class AdvancedMT5TradingMonitorGUI:
             )
             self.terminal_log(
                 f"   Portfolio Balance:  ${balance:,.2f}  "
-                f"({'SMALL � <$' + str(int(SMALL_BALANCE_THRESHOLD)) if small_balance_flag else 'Standard'})",
+                f"({'SMALL � <$' + str(int(SMALL_BALANCE_THRESHOLD)) if small_balance_flag else 'Standard'})",
                 "INFO", critical=True
             )
             self.terminal_log(
@@ -4964,18 +5168,24 @@ def main():
     """Main application entry point"""
     print(f" Starting Advanced MT5 Trading Monitor v{APP_VERSION}...")
     print("=" * 60)
-    
+
     # Check dependencies
     if not DEPENDENCIES_AVAILABLE:
         print("[X] ERROR: Required dependencies not found!")
         print("Please install: pip install MetaTrader5 pandas numpy")
         return
-        
-    if not MATPLOTLIB_AVAILABLE:
-        print("  WARNING: Chart libraries not found!")
-        print("For live charts, install: pip install matplotlib mplfinance")
-        print("Continuing without charts...")
-        print()
+
+    # Report active chart engine
+    if CHART_ENGINE == "lightweight":
+        print("[OK] Chart engine: Lightweight Charts (TradingView) — real-time interactive charts enabled.")
+    elif CHART_ENGINE == "matplotlib":
+        print("  Chart engine: Matplotlib (fallback) — install lightweight-charts for best experience:")
+        print("       pip install lightweight-charts")
+    else:
+        print("  WARNING: No chart library found — charts will be unavailable.")
+        print("  Recommended: pip install lightweight-charts")
+        print("  Fallback:    pip install matplotlib")
+    print()
         
     try:
         # Create and run GUI

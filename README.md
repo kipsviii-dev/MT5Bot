@@ -5,6 +5,7 @@
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![MetaTrader 5](https://img.shields.io/badge/MetaTrader-5-green.svg)](https://www.metatrader5.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Charts: TradingView](https://img.shields.io/badge/Charts-TradingView%20Engine-blueviolet.svg)](https://pypi.org/project/lightweight-charts/)
 
 ![MT5 Advanced Monitor GUI](docs/Advanced%20MT5%20Monitor.png)
 
@@ -15,7 +16,7 @@
 - **8-Asset Portfolio** - Trades EURUSD, GBPUSD, XAUUSD, AUDUSD, XAGUSD, USDCHF, EURJPY, USDJPY on M5
 - **Ray Dalio Allocation** - Economic scenario-based position sizing across all assets
 - **6-Layer Entry Filters** - Validates ATR, Angle, Price, Candle Direction, EMA Ordering, and Time before every trade
-- **Real-Time GUI** - Live charts, EMA overlays, strategy states, and comprehensive monitoring
+- **Real-Time Interactive Charts** - TradingView-engine (lightweight-charts) with live candlesticks, 5 EMA overlays, ATR SL/TP lines, and armed-direction markers; falls back to matplotlib if lightweight-charts is not installed
 - **4-Phase State Machine** - SCANNING > ARMED > WINDOW_OPEN > ENTRY with pullback confirmation
 - **MT5 Broker Integration** - Dynamic position sizing using broker-specific tick values (not hardcoded)
 - **Dynamic Drawdown Cap** - Automatically tightens as the account grows, viable from $100 upwards
@@ -39,6 +40,11 @@ cd mt5_live_trading_bot
 python -m venv venv
 venv\Scripts\activate
 pip install -r requirements.txt
+
+# Verify chart engine (lightweight-charts is preferred)
+# If lightweight-charts installed → TradingView engine active
+# If only matplotlib installed   → fallback mode active
+python -c "from lightweight_charts import Chart; print('TradingView engine: OK')"
 ```
 
 ### 2. Configuration
@@ -153,6 +159,52 @@ Result: Reduces entries from ~240/month to ~2-3/month per asset (matches backtes
 ---
 
 ## Latest Updates (March 2026)
+
+### TradingView-Engine Charts — lightweight-charts Integration (March 2026)
+
+The charting panel has been completely upgraded from matplotlib to the **TradingView Lightweight Charts engine** (`lightweight-charts` Python package). MT5 remains the sole broker, data source, and execution engine — only the visualisation layer changed.
+
+**What's new:**
+
+| Feature | Before (matplotlib) | After (lightweight-charts) |
+|---|---|---|
+| Chart type | Static re-render on every tick | Live push — only changed candles update |
+| Interactivity | Fixed zoom via toolbar | Scroll, pinch-zoom, crosshair out of the box |
+| Overlays | 5 EMAs plotted as lines | 5 EMA line series (`EMA Confirm / Fast / Medium / Slow / Filter`) |
+| SL / TP levels | Static `axhline` | Interactive price lines (shown/hidden per phase) |
+| Trade markers | None | ▲ / ▼ arrow markers on the last bar when ARMED |
+| Watermark | Chart title string | Dynamic symbol + phase + ATR watermark |
+| Engine | `matplotlib` / `FigureCanvasTkAgg` | `lightweight_charts.Chart` (floating window) |
+| Fallback | N/A | Full matplotlib path kept — activates automatically if `lightweight-charts` is not installed |
+
+**How the engine selection works:**
+
+```python
+# At startup (top of advanced_mt5_monitor_gui.py)
+CHART_ENGINE = "lightweight"   # if lightweight-charts is installed  ← preferred
+CHART_ENGINE = "matplotlib"    # fallback if only matplotlib present
+CHART_ENGINE = "none"          # if neither is installed
+```
+
+`refresh_chart()` dispatches to `_refresh_lightweight_chart()` or `_refresh_matplotlib_chart()` transparently. Every callout that previously checked `if MATPLOTLIB_AVAILABLE` now checks `if CHART_ENGINE != "none"` so both engines are handled by a single gate.
+
+**Auto-refresh triggers (both fast and full monitoring paths):**
+
+- Monitoring loop — fast path (price-only update)
+- Monitoring loop — full path (indicator recalculation)
+- Strategy phase selection in the phase tree
+- Symbol selector combo-box change
+- Manual "Refresh Chart" button
+
+**Install the primary engine:**
+
+```powershell
+pip install lightweight-charts
+```
+
+If `lightweight-charts` is already present, no action needed — it is automatically preferred over matplotlib.
+
+---
 
 ### Ray Dalio Allocation v2.1 - Dynamic Drawdown Cap + Trading Modes
 
@@ -336,7 +388,7 @@ Each file in `strategies/` contains:
 ## GUI Features
 
 - **Asset Dashboard** - Price, state, pullback count, window status per symbol
-- **Live Charts** - Candlesticks with EMA overlays (Fast, Medium, Slow, Filter)
+- **Live Interactive Charts** - TradingView-engine candlesticks with 5 EMA overlays, ATR SL/TP price lines, and armed-direction arrow markers (falls back to matplotlib if lightweight-charts is absent)
 - **Strategy States** - Color-coded phase indicators (SCANNING, ARMED, WINDOW_OPEN)
 - **Mode Selector** - NORMAL / AGGRESSIVE radio buttons with live DD cap display
 - **Configuration Viewer** - Complete strategy parameters and filter details
@@ -406,5 +458,6 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 - MetaTrader 5 Python API
 - Ray Dalio's All-Weather Portfolio principles
-- mplfinance for financial charts
+- [lightweight-charts](https://pypi.org/project/lightweight-charts/) — TradingView-engine charting (primary)
+- matplotlib / mplfinance — fallback charting
 - Backtrader for strategy development
