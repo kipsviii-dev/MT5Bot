@@ -220,3 +220,16 @@ optimization_results/
 # - Use template files for sharing configuration structure
 # - Keep sensitive data in local files only
 # - Review commits carefully before pushing
+
+# ===================
+# ONE-OFF UTILITY / MAINTENANCE SCRIPTS
+# ===================
+# Temporary scripts used during development (e.g. write_readme.py, fix_docs.py).
+# These are not part of the bot and should never be committed.
+fix_*.py
+write_*.py
+patch_*.py
+migrate_*.py
+cleanup_*.py
+temp_*.py
+scratch_*.py
